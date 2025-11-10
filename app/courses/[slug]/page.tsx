@@ -258,7 +258,11 @@ export default function CourseDetailPage() {
                   </p>
                   {course.createdAt && (
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {language === 'vi' ? 'Ngày tạo' : 'Created'}: {new Date(course.createdAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {language === 'vi' ? 'Ngày tạo' : 'Created'}:{' '}
+                      {new Date(course.createdAt).toLocaleDateString(
+                        language === 'vi' ? 'vi-VN' : 'en-US',
+                        { year: 'numeric', month: 'long', day: 'numeric' }
+                      )}
                     </p>
                   )}
                   <div className="mt-4 flex items-center gap-2">

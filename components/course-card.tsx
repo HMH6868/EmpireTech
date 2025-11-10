@@ -1,24 +1,24 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Star, BookOpen, Clock } from "lucide-react"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import type { Course } from "@/lib/mock-data"
-import { useLanguage } from "@/hooks/use-language"
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/use-language';
+import type { Course } from '@/lib/mock-data';
+import { BookOpen, Clock, Star } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface CourseCardProps {
-  course: Course
+  course: Course;
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-  const { language, formatCurrency } = useLanguage()
-  const lessonLabel = language === "vi" ? "bài học" : "lessons"
+  const { language, formatCurrency } = useLanguage();
+  const lessonLabel = language === 'vi' ? 'bài học' : 'lessons';
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
       <Link href={`/courses/${course.slug}`}>
         <div className="relative aspect-video overflow-hidden bg-muted">
           <Image
-            src={course.thumbnail || "/placeholder.svg"}
+            src={course.thumbnail || '/placeholder.svg'}
             alt={course.title[language]}
             fill
             className="object-cover transition-transform group-hover:scale-105"
@@ -34,10 +34,10 @@ export function CourseCard({ course }: CourseCardProps) {
         <p className="mt-2 text-sm text-muted-foreground">{course.instructor}</p>
         {course.createdAt && (
           <p className="mt-1 text-xs text-muted-foreground">
-            {new Date(course.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", { 
-              year: "numeric", 
-              month: "short", 
-              day: "numeric" 
+            {new Date(course.createdAt).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
             })}
           </p>
         )}
@@ -60,11 +60,13 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex items-center justify-between p-4 pt-0">
-        <p className="text-2xl font-bold">{formatCurrency(course.price[language === "vi" ? "vnd" : "usd"])}</p>
+        <p className="text-2xl font-bold">
+          {formatCurrency(course.price[language === 'vi' ? 'vnd' : 'usd'])}
+        </p>
         <Link href={`/courses/${course.slug}`}>
-          <Button size="sm">{language === "vi" ? "Đăng ký ngay" : "Enroll Now"}</Button>
+          <Button size="sm">{language === 'vi' ? 'Đăng ký ngay' : 'Enroll Now'}</Button>
         </Link>
       </CardFooter>
     </Card>
-  )
+  );
 }
