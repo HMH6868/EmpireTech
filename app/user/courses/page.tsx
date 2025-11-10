@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { courses } from "@/lib/mock-data"
+import { courses, type LocalizedText } from "@/lib/mock-data"
+import { useLanguage } from "@/hooks/use-language"
+
+const getLocalizedString = (value: LocalizedText | string, lang: "en" | "vi") =>
+  typeof value === "string" ? value : value[lang] ?? ""
 
 export default function UserCoursesPage() {
+  const { language } = useLanguage()
   // Mock enrolled courses with progress
   const enrolledCourses = [
     {
@@ -58,7 +63,7 @@ export default function UserCoursesPage() {
                   <div className="relative aspect-video overflow-hidden bg-muted">
                     <Image
                       src={course.thumbnail || "/placeholder.svg"}
-                      alt={course.title}
+                      alt={getLocalizedString(course.title, language)}
                       fill
                       className="object-cover transition-transform group-hover:scale-105"
                     />
@@ -78,7 +83,7 @@ export default function UserCoursesPage() {
                   <CardContent className="p-4">
                     <Link href={`/courses/${course.slug}`}>
                       <h3 className="mb-2 line-clamp-2 text-balance font-semibold transition-colors group-hover:text-primary">
-                        {course.title}
+                        {getLocalizedString(course.title, language)}
                       </h3>
                     </Link>
                     <p className="mb-3 text-sm text-muted-foreground">{course.instructor}</p>
@@ -97,12 +102,12 @@ export default function UserCoursesPage() {
                       <div className="flex items-center gap-1">
                         <BookOpen className="h-4 w-4" />
                         <span>
-                          {course.completedLessons}/{course.lessons} lessons
+                          {course.completedLessons}/{course.lessons} {language === "vi" ? "bài học" : "lessons"}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        <span>{course.duration}</span>
+                        <span>{getLocalizedString(course.duration, language)}</span>
                       </div>
                     </div>
 

@@ -1,9 +1,22 @@
+"use client"
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { CourseCard } from "@/components/course-card"
 import { courses } from "@/lib/mock-data"
+import { useLanguage } from "@/hooks/use-language"
 
 export default function CoursesPage() {
+  const { language } = useLanguage()
+
+  const copy = {
+    title: { en: "Online Courses", vi: "Khoá học trực tuyến" },
+    description: {
+      en: "Learn new skills with our expert-led courses and advance your career",
+      vi: "Học kỹ năng mới cùng chuyên gia và thăng tiến sự nghiệp",
+    },
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -12,10 +25,8 @@ export default function CoursesPage() {
         {/* Page Header */}
         <section className="border-b border-border/40 bg-muted/30 py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Online Courses</h1>
-            <p className="mt-3 text-pretty text-lg text-muted-foreground">
-              Learn new skills with our expert-led courses and advance your career
-            </p>
+            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{copy.title[language]}</h1>
+            <p className="mt-3 text-pretty text-lg text-muted-foreground">{copy.description[language]}</p>
           </div>
         </section>
 

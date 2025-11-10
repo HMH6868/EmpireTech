@@ -7,11 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { promotions } from "@/lib/mock-data"
+import { promotions, type LocalizedText } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/hooks/use-language"
+
+const getLocalizedString = (value: LocalizedText | string, lang: "en" | "vi") =>
+  typeof value === "string" ? value : value[lang] ?? ""
 
 export default function PromotionsPage() {
   const { toast } = useToast()
+  const { language } = useLanguage()
 
   const activePromotions = promotions.filter((p) => p.status === "active")
   const upcomingPromotions = promotions.filter((p) => p.status === "scheduled")
@@ -71,7 +76,7 @@ export default function PromotionsPage() {
                           <Badge variant="default" className="mb-2">
                             {promo.discountPercent}% OFF
                           </Badge>
-                          <CardTitle className="text-xl">{promo.description}</CardTitle>
+                          <CardTitle className="text-xl">{getLocalizedString(promo.description, language)}</CardTitle>
                         </div>
                       </div>
                     </CardHeader>
@@ -140,7 +145,7 @@ export default function PromotionsPage() {
                             <Badge variant="outline">{promo.discountPercent}% OFF</Badge>
                             <Badge variant="secondary">Upcoming</Badge>
                           </div>
-                          <h3 className="mb-1 font-semibold">{promo.description}</h3>
+                          <h3 className="mb-1 font-semibold">{getLocalizedString(promo.description, language)}</h3>
                           <p className="text-sm text-muted-foreground">Starts on {promo.startDate}</p>
                         </div>
                       </div>

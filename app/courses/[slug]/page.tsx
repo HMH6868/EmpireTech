@@ -19,6 +19,7 @@ import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { courses, reviews, comments } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/hooks/use-language"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ import {
 export default function CourseDetailPage() {
   const params = useParams()
   const { toast } = useToast()
+  const { language, currency, formatCurrency } = useLanguage()
   const [newReview, setNewReview] = useState({ rating: 5, comment: "" })
   const [newComment, setNewComment] = useState("")
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -58,9 +60,9 @@ export default function CourseDetailPage() {
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Course not found</h1>
+            <h1 className="text-2xl font-bold">{language === "vi" ? "Không tìm thấy khóa học" : "Course not found"}</h1>
             <Link href="/courses" className="mt-4 inline-block">
-              <Button>Back to Courses</Button>
+              <Button>{language === "vi" ? "Quay lại danh sách khóa học" : "Back to Courses"}</Button>
             </Link>
           </div>
         </main>
@@ -80,44 +82,53 @@ export default function CourseDetailPage() {
     "Final Assessment",
   ]
 
+  const courseDescription = course?.description[language] ?? ""
   const markdownDescription = `
-## About This Course
+## ${language === "vi" ? "Giới thiệu khóa học" : "About This Course"}
 
-${course.description}
+${courseDescription}
 
-### What You'll Learn
+### ${language === "vi" ? "Bạn sẽ học được" : "What You'll Learn"}
 
-- Master **core concepts** and fundamentals
-- Build real-world projects from scratch
-- Learn industry best practices
-- Get hands-on experience with practical exercises
-- Understand advanced techniques
+- ${language === "vi" ? "Nắm vững kiến thức cốt lõi" : "Master core concepts and fundamentals"}
+- ${language === "vi" ? "Xây dựng dự án thực tế" : "Build real-world projects from scratch"}
+- ${language === "vi" ? "Áp dụng best-practice mới nhất" : "Learn industry best practices"}
+- ${language === "vi" ? "Tương tác qua bài tập thực hành" : "Get hands-on experience with practical exercises"}
+- ${language === "vi" ? "Tiếp cận kỹ thuật nâng cao" : "Understand advanced techniques"}
 
-### Course Structure
+### ${language === "vi" ? "Cấu trúc khóa học" : "Course Structure"}
 
-This comprehensive course is designed for learners of all levels. Whether you're a complete beginner or looking to enhance your skills, you'll find valuable content throughout.
+${language === "vi"
+    ? "Khoá học phù hợp cho cả người mới bắt đầu lẫn học viên nâng cao, có lộ trình rõ ràng và bài tập thực tế."
+    : "This comprehensive course is designed for learners of all levels with real-world practice projects."}
 
-> *"The best investment you can make is in yourself."*
+> *${language === "vi" ? "Đầu tư tốt nhất là đầu tư cho bản thân." : '"The best investment you can make is in yourself."'}*
 
-### Requirements
+### ${language === "vi" ? "Yêu cầu" : "Requirements"}
 
-- Basic computer skills
-- Enthusiasm to learn
-- No prior experience needed
+- ${language === "vi" ? "Máy tính và kết nối Internet" : "Basic computer skills"}
+- ${language === "vi" ? "Tinh thần ham học hỏi" : "Enthusiasm to learn"}
+- ${language === "vi" ? "Không yêu cầu kinh nghiệm trước" : "No prior experience needed"}
   `.trim()
 
   const handleEnroll = () => {
     toast({
-      title: "Enrollment successful!",
-      description: `You've been enrolled in ${course.title}`,
+      title: language === "vi" ? "Đăng ký thành công!" : "Enrollment successful!",
+      description:
+        language === "vi"
+          ? `Bạn đã đăng ký khóa ${course.title[language]}`
+          : `You've been enrolled in ${course.title[language]}`,
     })
   }
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault()
     toast({
-      title: "Review submitted!",
-      description: "Your review has been submitted and is pending approval.",
+      title: language === "vi" ? "Đã gửi đánh giá!" : "Review submitted!",
+      description:
+        language === "vi"
+          ? "Đánh giá của bạn đã được gửi và đang chờ duyệt."
+          : "Your review has been submitted and is pending approval.",
     })
     setNewReview({ rating: 5, comment: "" })
   }
@@ -125,8 +136,11 @@ This comprehensive course is designed for learners of all levels. Whether you're
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault()
     toast({
-      title: "Comment posted!",
-      description: "Your comment has been submitted and is pending approval.",
+      title: language === "vi" ? "Đã gửi bình luận!" : "Comment posted!",
+      description:
+        language === "vi"
+          ? "Bình luận của bạn đã được gửi và đang chờ duyệt."
+          : "Your comment has been submitted and is pending approval.",
     })
     setNewComment("")
   }
@@ -153,26 +167,33 @@ This comprehensive course is designed for learners of all levels. Whether you're
               {/* Course Info */}
               <div className="lg:col-span-2">
                 <Badge variant="secondary" className="mb-3">
-                  Online Course
+                  {language === "vi" ? "Khoá học trực tuyến" : "Online Course"}
                 </Badge>
                 <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                  {course.title}
+                  {course.title[language]}
                 </h1>
-                <p className="mt-4 text-pretty text-lg leading-relaxed text-muted-foreground">{course.description}</p>
+                <p className="mt-4 text-pretty text-lg leading-relaxed text-muted-foreground">
+                  {course.description[language]}
+                </p>
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-1">
                     <Star className="h-5 w-5 fill-primary text-primary" />
                     <span className="font-semibold">{averageRating}</span>
-                    <span className="text-muted-foreground">({courseReviews.length} reviews)</span>
+                    <span className="text-muted-foreground">
+                      ({courseReviews.length} {language === "vi" ? "đánh giá" : "reviews"})
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Users className="h-5 w-5" />
-                    <span>2,540 students enrolled</span>
+                    <span>
+                      2,540 {language === "vi" ? "học viên đã đăng ký" : "students enrolled"}
+                    </span>
                   </div>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm text-muted-foreground">
-                    Created by <span className="font-medium text-foreground">{course.instructor}</span>
+                    {language === "vi" ? "Giảng viên" : "Created by"}{" "}
+                    <span className="font-medium text-foreground">{course.instructor}</span>
                   </p>
                 </div>
               </div>
@@ -183,7 +204,7 @@ This comprehensive course is designed for learners of all levels. Whether you're
                   <div className="relative aspect-video overflow-hidden rounded-t-lg bg-muted">
                     <Image
                       src={course.thumbnail || "/placeholder.svg"}
-                      alt={course.title}
+                      alt={course.title[language]}
                       fill
                       className="object-cover"
                     />
@@ -198,14 +219,18 @@ This comprehensive course is designed for learners of all levels. Whether you're
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl">
                           <DialogHeader>
-                            <DialogTitle>{course.title} - Preview</DialogTitle>
-                            <DialogDescription>View course images</DialogDescription>
+                            <DialogTitle>
+                              {course.title[language]} - {language === "vi" ? "Xem trước" : "Preview"}
+                            </DialogTitle>
+                            <DialogDescription>
+                              {language === "vi" ? "Xem hình ảnh khóa học" : "View course images"}
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="relative">
                             <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
                               <Image
                                 src={galleryImages[currentImageIndex] || "/placeholder.svg"}
-                                alt={`${course.title} ${currentImageIndex + 1}`}
+                                alt={`${course.title[language]} ${currentImageIndex + 1}`}
                                 fill
                                 className="object-contain"
                               />
@@ -243,7 +268,7 @@ This comprehensive course is designed for learners of all levels. Whether you're
                                 >
                                   <Image
                                     src={img || "/placeholder.svg"}
-                                    alt={`${course.title} ${idx + 1}`}
+                                    alt={`${course.title[language]} ${idx + 1}`}
                                     fill
                                     className="object-cover"
                                   />
@@ -262,26 +287,26 @@ This comprehensive course is designed for learners of all levels. Whether you're
                     )}
                   </div>
                   <CardContent className="p-6">
-                    <p className="text-3xl font-bold">${course.price}</p>
+                    <p className="text-3xl font-bold">{formatCurrency(course.price[currency], { currency })}</p>
                     <Button size="lg" className="mt-4 w-full" onClick={handleEnroll}>
-                      Enroll Now
+                      {language === "vi" ? "Đăng ký ngay" : "Enroll Now"}
                     </Button>
                     <div className="mt-6 space-y-3 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Lessons</span>
+                        <span className="text-muted-foreground">{language === "vi" ? "Số bài học" : "Lessons"}</span>
                         <span className="font-medium">{course.lessons}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Duration</span>
-                        <span className="font-medium">{course.duration}</span>
+                        <span className="text-muted-foreground">{language === "vi" ? "Thời lượng" : "Duration"}</span>
+                        <span className="font-medium">{course.duration[language]}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Level</span>
-                        <span className="font-medium">All Levels</span>
+                        <span className="text-muted-foreground">{language === "vi" ? "Trình độ" : "Level"}</span>
+                        <span className="font-medium">{language === "vi" ? "Mọi trình độ" : "All Levels"}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Access</span>
-                        <span className="font-medium">Lifetime</span>
+                        <span className="text-muted-foreground">{language === "vi" ? "Thời hạn" : "Access"}</span>
+                        <span className="font-medium">{language === "vi" ? "Trọn đời" : "Lifetime"}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -298,9 +323,11 @@ This comprehensive course is designed for learners of all levels. Whether you're
               <div className="lg:col-span-2">
                 <Tabs defaultValue="description" className="w-full">
                   <TabsList className="grid w-full max-w-lg grid-cols-3">
-                    <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="content">Content</TabsTrigger>
-                    <TabsTrigger value="reviews">Reviews ({courseReviews.length})</TabsTrigger>
+                    <TabsTrigger value="description">{language === "vi" ? "Mô tả" : "Description"}</TabsTrigger>
+                    <TabsTrigger value="content">{language === "vi" ? "Nội dung" : "Content"}</TabsTrigger>
+                    <TabsTrigger value="reviews">
+                      {language === "vi" ? "Đánh giá" : "Reviews"} ({courseReviews.length})
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="description" className="mt-6">
                     <Card>
@@ -310,26 +337,32 @@ This comprehensive course is designed for learners of all levels. Whether you're
                     </Card>
 
                     <div className="mt-6">
-                      <h3 className="mb-4 text-xl font-semibold">Comments</h3>
+                      <h3 className="mb-4 text-xl font-semibold">
+                        {language === "vi" ? "Bình luận" : "Comments"}
+                      </h3>
                       <div className="space-y-6">
                         {/* Comment Form */}
                         <Card>
                           <CardContent className="p-6">
                             <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                               <MessageCircle className="h-5 w-5" />
-                              Post a Comment
+                              {language === "vi" ? "Đặt câu hỏi hoặc bình luận" : "Post a Comment"}
                             </h4>
                             <form onSubmit={handleSubmitComment} className="space-y-4">
                               <div>
                                 <Textarea
-                                  placeholder="Ask a question or share your thoughts..."
+                                  placeholder={
+                                    language === "vi"
+                                      ? "Đặt câu hỏi hoặc chia sẻ suy nghĩ của bạn..."
+                                      : "Ask a question or share your thoughts..."
+                                  }
                                   value={newComment}
                                   onChange={(e) => setNewComment(e.target.value)}
                                   className="min-h-[100px]"
                                   required
                                 />
                               </div>
-                              <Button type="submit">Post Comment</Button>
+                              <Button type="submit">{language === "vi" ? "Gửi bình luận" : "Post Comment"}</Button>
                             </form>
                           </CardContent>
                         </Card>
@@ -348,7 +381,9 @@ This comprehensive course is designed for learners of all levels. Whether you're
                                       <p className="font-medium">{comment.userName}</p>
                                       <span className="text-sm text-muted-foreground">{comment.createdAt}</span>
                                     </div>
-                                    <p className="mt-2 leading-relaxed text-muted-foreground">{comment.comment}</p>
+                                    <p className="mt-2 leading-relaxed text-muted-foreground">
+                                      {comment.comment[language]}
+                                    </p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -406,9 +441,11 @@ This comprehensive course is designed for learners of all levels. Whether you're
                                   ))}
                                 </div>
                               </div>
-                              <p className="mt-1 text-sm text-muted-foreground">
-                                Based on {courseReviews.length} reviews
-                              </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {language === "vi"
+                                ? `Dựa trên ${courseReviews.length} đánh giá`
+                                : `Based on ${courseReviews.length} reviews`}
+                            </p>
                             </div>
                           </div>
                         </CardContent>
@@ -417,7 +454,9 @@ This comprehensive course is designed for learners of all levels. Whether you're
                       {/* Review Form */}
                       <Card>
                         <CardContent className="p-6">
-                          <h3 className="mb-4 text-lg font-semibold">Write a Review</h3>
+                        <h3 className="mb-4 text-lg font-semibold">
+                          {language === "vi" ? "Viết đánh giá" : "Write a Review"}
+                        </h3>
                           <form onSubmit={handleSubmitReview} className="space-y-4">
                             <div>
                               <Label>Rating</Label>
@@ -438,19 +477,23 @@ This comprehensive course is designed for learners of all levels. Whether you're
                                 ))}
                               </div>
                             </div>
-                            <div>
-                              <Label htmlFor="comment">Your Review</Label>
-                              <Textarea
-                                id="comment"
-                                placeholder="Share your experience with this course..."
-                                value={newReview.comment}
-                                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                                className="mt-2 min-h-[100px]"
-                                required
-                              />
-                            </div>
-                            <Button type="submit">Submit Review</Button>
-                          </form>
+                          <div>
+                            <Label htmlFor="comment">{language === "vi" ? "Nội dung đánh giá" : "Your Review"}</Label>
+                            <Textarea
+                              id="comment"
+                              placeholder={
+                                language === "vi"
+                                  ? "Chia sẻ trải nghiệm của bạn với khóa học..."
+                                  : "Share your experience with this course..."
+                              }
+                              value={newReview.comment}
+                              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                              className="mt-2 min-h-[100px]"
+                              required
+                            />
+                          </div>
+                          <Button type="submit">{language === "vi" ? "Gửi đánh giá" : "Submit Review"}</Button>
+                        </form>
                         </CardContent>
                       </Card>
 
@@ -484,7 +527,9 @@ This comprehensive course is designed for learners of all levels. Whether you're
                                   </div>
                                 </div>
                               </div>
-                              <p className="mt-3 leading-relaxed text-muted-foreground">{review.comment}</p>
+                            <p className="mt-3 leading-relaxed text-muted-foreground">
+                              {review.comment[language]}
+                            </p>
                             </CardContent>
                           </Card>
                         ))}
@@ -497,7 +542,7 @@ This comprehensive course is designed for learners of all levels. Whether you're
               <div className="lg:col-span-1">
                 {/* Instructor Info */}
                 <div>
-                  <h2 className="mb-4 text-2xl font-bold">Instructor</h2>
+                  <h2 className="mb-4 text-2xl font-bold">{language === "vi" ? "Giảng viên" : "Instructor"}</h2>
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3">
@@ -506,12 +551,15 @@ This comprehensive course is designed for learners of all levels. Whether you're
                         </div>
                         <div>
                           <p className="font-semibold">{course.instructor}</p>
-                          <p className="text-sm text-muted-foreground">Expert Instructor</p>
+                          <p className="text-sm text-muted-foreground">
+                            {language === "vi" ? "Chuyên gia hướng dẫn" : "Expert Instructor"}
+                          </p>
                         </div>
                       </div>
                       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                        Professional instructor with years of experience in the field, dedicated to helping students
-                        achieve their goals.
+                        {language === "vi"
+                          ? "Giảng viên giàu kinh nghiệm, tận tâm đồng hành cùng học viên đạt mục tiêu."
+                          : "Professional instructor dedicated to helping students achieve their goals."}
                       </p>
                     </CardContent>
                   </Card>
@@ -519,18 +567,21 @@ This comprehensive course is designed for learners of all levels. Whether you're
 
                 {/* What You'll Learn */}
                 <div className="mt-6">
-                  <h2 className="mb-4 text-2xl font-bold">What You'll Learn</h2>
+                  <h2 className="mb-4 text-2xl font-bold">
+                    {language === "vi" ? "Bạn sẽ học được gì" : "What You'll Learn"}
+                  </h2>
                   <Card>
                     <CardContent className="p-6">
                       <div className="space-y-3">
-                        {["Master core concepts", "Build real projects", "Learn best practices", "Get certified"].map(
-                          (item, index) => (
-                            <div key={index} className="flex items-start gap-2">
-                              <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                              <span className="text-sm">{item}</span>
-                            </div>
-                          ),
-                        )}
+                        {(language === "vi"
+                          ? ["Nắm vững kiến thức cốt lõi", "Thực hành dự án thật", "Áp dụng best-practice", "Nhận chứng nhận"]
+                          : ["Master core concepts", "Build real projects", "Learn best practices", "Get certified"]
+                        ).map((item, index) => (
+                          <div key={index} className="flex items-start gap-2">
+                            <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                            <span className="text-sm">{item}</span>
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -545,7 +596,7 @@ This comprehensive course is designed for learners of all levels. Whether you're
           <section className="border-t border-border/40 bg-muted/30 py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="mb-8 text-balance text-2xl font-bold tracking-tight sm:text-3xl">
-                More Courses You Might Like
+                {language === "vi" ? "Khoá học liên quan" : "More Courses You Might Like"}
               </h2>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {relatedCourses.map((course) => (

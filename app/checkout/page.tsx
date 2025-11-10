@@ -15,11 +15,31 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
+import { products } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/hooks/use-language"
+
+const checkoutItems = [
+  {
+    id: products[0].id,
+    name: products[0].name,
+    price: products[0].price,
+    image: products[0].image,
+    variant: products[0].variants?.[0]?.name,
+  },
+  {
+    id: products[1].id,
+    name: products[1].name,
+    price: products[1].price,
+    image: products[1].image,
+    variant: products[1].variants?.[0]?.name,
+  },
+]
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { language, currency, formatCurrency } = useLanguage()
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [formData, setFormData] = useState({
     fullName: "",
@@ -28,47 +48,64 @@ export default function CheckoutPage() {
     deliveryPassword: "",
   })
 
-  // Mock cart items
-  const cartItems = [
-    {
-      id: "1",
-      name: "ChatGPT Plus Account",
-      variant: "1 Month",
-      price: 15.99,
-      image: "/placeholder.svg?height=80&width=80",
-    },
-    {
-      id: "2",
-      name: "Canva Pro Account",
-      price: 12.99,
-      image: "/placeholder.svg?height=80&width=80",
-    },
-  ]
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0)
+  const subtotal = checkoutItems.reduce((sum, item) => sum + item.price[currency], 0)
   const tax = subtotal * 0.1
   const total = subtotal + tax
+
+  const copy = {
+    backToCart: { en: "Back to Cart", vi: "Quay lại giỏ hàng" },
+    checkout: { en: "Checkout", vi: "Thanh toán" },
+    contactInfo: { en: "Contact Information", vi: "Thông tin liên hệ" },
+    fullName: { en: "Full Name *", vi: "Họ và tên *" },
+    email: { en: "Email Address *", vi: "Email liên hệ *" },
+    deliveryTitle: { en: "Delivery Details", vi: "Thông tin giao tài khoản" },
+    deliveryEmail: { en: "Delivery Email *", vi: "Email nhận tài khoản *" },
+    deliveryHint: {
+      en: "Account credentials will be sent to this email",
+      vi: "Thông tin tài khoản sẽ được gửi tới email này",
+    },
+    preferredPassword: { en: "Preferred Password (Optional)", vi: "Mật khẩu mong muốn (tùy chọn)" },
+    preferredHint: {
+      en: "If provided, we'll try to set this as your account password",
+      vi: "Nếu cung cấp, chúng tôi sẽ cố gắng đặt mật khẩu này",
+    },
+    paymentMethodTitle: { en: "Payment Method", vi: "Phương thức thanh toán" },
+    card: { en: "Credit / Debit Card", vi: "Thẻ tín dụng / ghi nợ" },
+    cardDesc: { en: "Visa, Mastercard, American Express", vi: "Hỗ trợ Visa, Mastercard, American Express" },
+    paypal: { en: "PayPal", vi: "PayPal" },
+    paypalDesc: { en: "Pay with your PayPal account", vi: "Thanh toán bằng tài khoản PayPal" },
+    bank: { en: "Bank Transfer", vi: "Chuyển khoản" },
+    bankDesc: { en: "Direct bank transfer", vi: "Chuyển khoản trực tiếp" },
+    summaryTitle: { en: "Order Summary", vi: "Tóm tắt đơn hàng" },
+    subtotal: { en: "Subtotal", vi: "Tạm tính" },
+    taxLabel: { en: "Tax (10%)", vi: "Thuế (10%)" },
+    totalLabel: { en: "Total", vi: "Thành tiền" },
+    placeOrder: { en: "Place Order", vi: "Đặt hàng" },
+    requiredError: { en: "Please fill in all required fields.", vi: "Vui lòng điền đầy đủ thông tin bắt buộc." },
+    successTitle: { en: "Order placed!", vi: "Đặt hàng thành công!" },
+    successDesc: {
+      en: "Your order has been successfully placed.",
+      vi: "Đơn hàng của bạn đã được ghi nhận.",
+    },
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate form
     if (!formData.fullName || !formData.email || !formData.deliveryEmail) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
+        title: language === "vi" ? "Thiếu thông tin" : "Error",
+        description: copy.requiredError[language],
         variant: "destructive",
       })
       return
     }
 
-    // Success
     toast({
-      title: "Order placed!",
-      description: "Your order has been successfully placed.",
+      title: copy.successTitle[language],
+      description: copy.successDesc[language],
     })
 
-    // Redirect to success page
     router.push("/checkout/success")
   }
 
@@ -84,38 +121,36 @@ export default function CheckoutPage() {
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Cart
+              {copy.backToCart[language]}
             </Link>
           </div>
 
-          <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+          <h1 className="mb-8 text-3xl font-bold">{copy.checkout[language]}</h1>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {/* Checkout Form */}
             <div className="lg:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Contact Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
+                    <CardTitle>{copy.contactInfo[language]}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="fullName">Full Name *</Label>
+                      <Label htmlFor="fullName">{copy.fullName[language]}</Label>
                       <Input
                         id="fullName"
-                        placeholder="John Doe"
+                        placeholder={language === "vi" ? "Nguyễn Văn A" : "John Doe"}
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email Address *</Label>
+                      <Label htmlFor="email">{copy.email[language]}</Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="john@example.com"
+                        placeholder={language === "vi" ? "ban@example.com" : "john@example.com"}
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
@@ -124,46 +159,40 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                {/* Delivery Details */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Delivery Details</CardTitle>
+                    <CardTitle>{copy.deliveryTitle[language]}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="deliveryEmail">Delivery Email *</Label>
+                      <Label htmlFor="deliveryEmail">{copy.deliveryEmail[language]}</Label>
                       <Input
                         id="deliveryEmail"
                         type="email"
-                        placeholder="delivery@example.com"
+                        placeholder={language === "vi" ? "emailnhan@example.com" : "delivery@example.com"}
                         value={formData.deliveryEmail}
                         onChange={(e) => setFormData({ ...formData, deliveryEmail: e.target.value })}
                         required
                       />
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Account credentials will be sent to this email
-                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">{copy.deliveryHint[language]}</p>
                     </div>
                     <div>
-                      <Label htmlFor="deliveryPassword">Preferred Password (Optional)</Label>
+                      <Label htmlFor="deliveryPassword">{copy.preferredPassword[language]}</Label>
                       <Input
                         id="deliveryPassword"
                         type="password"
-                        placeholder="Enter preferred password"
+                        placeholder={language === "vi" ? "Nhập mật khẩu mong muốn" : "Enter preferred password"}
                         value={formData.deliveryPassword}
                         onChange={(e) => setFormData({ ...formData, deliveryPassword: e.target.value })}
                       />
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        If provided, we'll try to set this as your account password
-                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">{copy.preferredHint[language]}</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Payment Method */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Payment Method</CardTitle>
+                    <CardTitle>{copy.paymentMethodTitle[language]}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -172,28 +201,28 @@ export default function CheckoutPage() {
                         <Label htmlFor="card" className="flex flex-1 cursor-pointer items-center gap-3">
                           <CreditCard className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">Credit / Debit Card</p>
-                            <p className="text-sm text-muted-foreground">Visa, Mastercard, American Express</p>
+                            <p className="font-medium">{copy.card[language]}</p>
+                            <p className="text-sm text-muted-foreground">{copy.cardDesc[language]}</p>
                           </div>
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                      <div className="mt-3 flex items-center space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50">
                         <RadioGroupItem value="paypal" id="paypal" />
                         <Label htmlFor="paypal" className="flex flex-1 cursor-pointer items-center gap-3">
                           <Wallet className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">PayPal</p>
-                            <p className="text-sm text-muted-foreground">Pay with your PayPal account</p>
+                            <p className="font-medium">{copy.paypal[language]}</p>
+                            <p className="text-sm text-muted-foreground">{copy.paypalDesc[language]}</p>
                           </div>
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                      <div className="mt-3 flex items-center space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50">
                         <RadioGroupItem value="bank" id="bank" />
                         <Label htmlFor="bank" className="flex flex-1 cursor-pointer items-center gap-3">
                           <Building className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">Bank Transfer</p>
-                            <p className="text-sm text-muted-foreground">Direct bank transfer</p>
+                            <p className="font-medium">{copy.bank[language]}</p>
+                            <p className="text-sm text-muted-foreground">{copy.bankDesc[language]}</p>
                           </div>
                         </Label>
                       </div>
@@ -202,29 +231,36 @@ export default function CheckoutPage() {
                 </Card>
 
                 <Button type="submit" size="lg" className="w-full">
-                  Place Order - ${total.toFixed(2)}
+                  {copy.placeOrder[language]} · {formatCurrency(total, { currency })}
                 </Button>
               </form>
             </div>
 
-            {/* Order Summary */}
             <div className="lg:col-span-1">
               <Card className="sticky top-20">
                 <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
+                  <CardTitle>{copy.summaryTitle[language]}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Items */}
                   <div className="space-y-3">
-                    {cartItems.map((item) => (
+                    {checkoutItems.map((item) => (
                       <div key={item.id} className="flex gap-3">
                         <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-muted">
-                          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                          <Image
+                            src={item.image || "/placeholder.svg"}
+                            alt={item.name[language]}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium line-clamp-1">{item.name}</p>
-                          {item.variant && <p className="text-sm text-muted-foreground">{item.variant}</p>}
-                          <p className="text-sm font-semibold">${item.price}</p>
+                          <p className="font-medium line-clamp-1">{item.name[language]}</p>
+                          {item.variant && (
+                            <p className="text-sm text-muted-foreground">{item.variant[language]}</p>
+                          )}
+                          <p className="text-sm font-semibold">
+                            {formatCurrency(item.price[currency], { currency })}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -232,23 +268,22 @@ export default function CheckoutPage() {
 
                   <Separator />
 
-                  {/* Pricing */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{copy.subtotal[language]}</span>
+                      <span>{formatCurrency(subtotal, { currency })}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax (10%)</span>
-                      <span>${tax.toFixed(2)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{copy.taxLabel[language]}</span>
+                      <span>{formatCurrency(tax, { currency })}</span>
                     </div>
                   </div>
 
                   <Separator />
 
                   <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{copy.totalLabel[language]}</span>
+                    <span>{formatCurrency(total, { currency })}</span>
                   </div>
                 </CardContent>
               </Card>

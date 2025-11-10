@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
 import { ShoppingCart, Menu, User, LogIn, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,26 +14,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { useLanguage } from "@/hooks/use-language"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [cartCount] = useState(3) // Mock cart count
   const [isLoggedIn] = useState(false) // Mock auth state
+  const { language } = useLanguage()
 
   const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/accounts", label: "Accounts" },
-    { href: "/courses", label: "Courses" },
-    { href: "/promotions", label: "Promotions" },
-    { href: "/policies", label: "Policies & Contact" },
+    { href: "/", label: { en: "Home", vi: "Trang chủ" } },
+    { href: "/accounts", label: { en: "Accounts", vi: "Tài khoản" } },
+    { href: "/courses", label: { en: "Courses", vi: "Khóa học" } },
+    { href: "/promotions", label: { en: "Promotions", vi: "Khuyến mãi" } },
+    { href: "/policies", label: { en: "Policies & Contact", vi: "Chính sách & Liên hệ" } },
   ]
+
+  const promoCopy = {
+    en: "Special Offer: Get 20% off your first purchase! Use code WELCOME20",
+    vi: "Ưu đãi: Giảm 20% cho đơn đầu tiên! Nhập mã WELCOME20",
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="bg-primary/10 py-2 text-center">
         <Link href="/promotions" className="text-sm font-medium hover:underline">
           <Gift className="mr-1 inline-block h-4 w-4" />
-          Special Offer: Get 20% off your first purchase! Use code WELCOME20
+          {promoCopy[language]}
         </Link>
       </div>
 
@@ -40,8 +49,8 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">ET</span>
+            <div className="relative h-9 w-9">
+              <Image src="/logo.png" alt="Empire Tech logo" fill className="object-contain" priority />
             </div>
             <span className="text-xl font-bold tracking-tight">Empire Tech</span>
           </Link>
@@ -54,13 +63,16 @@ export function Header() {
                 href={link.href}
                 className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
               >
-                {link.label}
+                {link.label[language]}
               </Link>
             ))}
           </nav>
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
+            <div className="hidden md:block">
+              <LanguageSwitcher size="sm" />
+            </div>
             {/* Cart */}
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
@@ -83,30 +95,32 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/user/profile">
                       <User className="mr-2 h-4 w-4" />
-                      Profile
+                      {language === "vi" ? "Hồ sơ" : "Profile"}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/user/orders">
                       <ShoppingCart className="mr-2 h-4 w-4" />
-                      My Orders
+                      {language === "vi" ? "Đơn hàng" : "My Orders"}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/user/courses">
                       <User className="mr-2 h-4 w-4" />
-                      My Courses
+                      {language === "vi" ? "Khoá học của tôi" : "My Courses"}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">Logout</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">
+                    {language === "vi" ? "Đăng xuất" : "Logout"}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Link href="/login" className="hidden sm:block">
                 <Button variant="default" size="sm" className="gap-2">
                   <LogIn className="h-4 w-4" />
-                  Login
+                  {language === "vi" ? "Đăng nhập" : "Login"}
                 </Button>
               </Link>
             )}
@@ -127,15 +141,18 @@ export function Header() {
                       className="text-lg font-medium text-foreground/80 transition-colors hover:text-foreground"
                       onClick={() => setIsOpen(false)}
                     >
-                      {link.label}
+                      {link.label[language]}
                     </Link>
                   ))}
+                  <div className="mt-2">
+                    <LanguageSwitcher className="w-fit" />
+                  </div>
                   <div className="mt-4 border-t pt-4">
                     {!isLoggedIn && (
                       <Link href="/login" onClick={() => setIsOpen(false)}>
                         <Button className="w-full gap-2">
                           <LogIn className="h-4 w-4" />
-                          Login
+                          {language === "vi" ? "Đăng nhập" : "Login"}
                         </Button>
                       </Link>
                     )}

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { adminCourses, type AdminCourse } from "@/lib/mock-data"
+import { adminCourses, type Course, type LocalizedText } from "@/lib/mock-data"
 import {
   Dialog,
   DialogContent,
@@ -21,25 +21,45 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from "@/hooks/use-language"
+
+const emptyLocalized = (): LocalizedText => ({ en: "", vi: "" })
+const ensureLocalizedText = (value: LocalizedText | string | undefined): LocalizedText => {
+  if (!value) return emptyLocalized()
+  if (typeof value === "string") {
+    return { en: value, vi: value }
+  }
+  return value
+}
+
+const getLocalizedString = (value: LocalizedText | string | undefined, lang: "en" | "vi") => {
+  if (!value) return ""
+  return typeof value === "string" ? value : value[lang] ?? ""
+}
 
 export default function AdminCoursesPage() {
-  const [courseList, setCourseList] = useState(adminCourses)
+  const { language, currency, formatCurrency } = useLanguage()
+  const [courseList, setCourseList] = useState<Course[]>(adminCourses)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [editingCourse, setEditingCourse] = useState<AdminCourse | null>(null)
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null)
 
-  const filteredCourses = courseList.filter(
-    (course) =>
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const filteredCourses = courseList.filter((course) => {
+    if (!normalizedQuery) return true
+    const titleMatches =
+      course.title.en.toLowerCase().includes(normalizedQuery) ||
+      course.title.vi.toLowerCase().includes(normalizedQuery)
+    const instructorMatches = course.instructor.toLowerCase().includes(normalizedQuery)
+    return titleMatches || instructorMatches
+  })
 
   const handleAddCourse = () => {
     setEditingCourse(null)
     setIsDialogOpen(true)
   }
 
-  const handleEditCourse = (course: AdminCourse) => {
+  const handleEditCourse = (course: Course) => {
     setEditingCourse(course)
     setIsDialogOpen(true)
   }
@@ -51,17 +71,42 @@ export default function AdminCoursesPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const newCourse: AdminCourse = {
+
+    const galleryInput = (formData.get("images") as string) || ""
+    const galleryImages = galleryInput
+      .split("\n")
+      .map((img) => img.trim())
+      .filter(Boolean)
+
+    const newCourse: Course = {
       id: editingCourse?.id || String(courseList.length + 1),
-      title: formData.get("title") as string,
-      instructor: formData.get("instructor") as string,
-      price: Number.parseFloat(formData.get("price") as string),
-      status: formData.get("status") as "Published" | "Draft",
-      createdAt: editingCourse?.createdAt || new Date().toISOString().split("T")[0],
+      slug: (formData.get("slug") as string)?.trim() || editingCourse?.slug || "",
+      title: {
+        en: (formData.get("title_en") as string)?.trim() || "",
+        vi: (formData.get("title_vi") as string)?.trim() || "",
+      },
+      instructor: (formData.get("instructor") as string)?.trim() || "",
+      price: {
+        usd: Number.parseFloat((formData.get("price_usd") as string) || "0"),
+        vnd: Number.parseFloat((formData.get("price_vnd") as string) || "0"),
+      },
+      description: {
+        en: (formData.get("description_en") as string) || "",
+        vi: (formData.get("description_vi") as string) || "",
+      },
+      lessons: Number.parseInt((formData.get("lessons") as string) || "0", 10),
+      duration: {
+        en: (formData.get("duration_en") as string) || "",
+        vi: (formData.get("duration_vi") as string) || "",
+      },
+      thumbnail: (formData.get("thumbnail") as string)?.trim() || galleryImages[0] || editingCourse?.thumbnail || "",
+      images: galleryImages.length ? galleryImages : editingCourse?.images,
+      rating: editingCourse?.rating || 0,
+      status: (formData.get("status") as Course["status"]) || "Draft",
     }
 
     if (editingCourse) {
-      setCourseList(courseList.map((c) => (c.id === editingCourse.id ? newCourse : c)))
+      setCourseList(courseList.map((course) => (course.id === editingCourse.id ? newCourse : course)))
     } else {
       setCourseList([...courseList, newCourse])
     }
@@ -95,65 +140,150 @@ export default function AdminCoursesPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Course Title</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    placeholder="Complete Web Development Bootcamp"
-                    defaultValue={editingCourse?.title}
-                    required
-                  />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="title_en">Course Title (English)</Label>
+                    <Input
+                      id="title_en"
+                      name="title_en"
+                      placeholder="Complete Web Development Bootcamp"
+                      defaultValue={editingCourse ? editingCourse.title.en : ""}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="title_vi">Course Title (Vietnamese)</Label>
+                    <Input
+                      id="title_vi"
+                      name="title_vi"
+                      placeholder="Bootcamp lập trình Full-Stack"
+                      defaultValue={editingCourse ? editingCourse.title.vi : ""}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="slug">Slug</Label>
+                    <Input
+                      id="slug"
+                      name="slug"
+                      placeholder="fullstack-web-bootcamp"
+                      defaultValue={editingCourse?.slug}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="instructor">Instructor Name</Label>
+                    <Input
+                      id="instructor"
+                      name="instructor"
+                      placeholder="John Smith"
+                      defaultValue={editingCourse?.instructor}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="price_usd">Price (USD)</Label>
+                    <Input
+                      id="price_usd"
+                      name="price_usd"
+                      type="number"
+                      step="0.01"
+                      placeholder="49.99"
+                      defaultValue={editingCourse ? editingCourse.price.usd : ""}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="price_vnd">Price (VND)</Label>
+                    <Input
+                      id="price_vnd"
+                      name="price_vnd"
+                      type="number"
+                      step="1000"
+                      placeholder="1299000"
+                      defaultValue={editingCourse ? editingCourse.price.vnd : ""}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="lessons">Lessons</Label>
+                    <Input
+                      id="lessons"
+                      name="lessons"
+                      type="number"
+                      placeholder="48"
+                      defaultValue={editingCourse?.lessons}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Duration</Label>
+                    <Input
+                      name="duration_en"
+                      placeholder="24 hours"
+                      defaultValue={editingCourse ? editingCourse.duration.en : ""}
+                      required
+                    />
+                    <Input
+                      name="duration_vi"
+                      placeholder="24 giờ"
+                      defaultValue={editingCourse ? editingCourse.duration.vi : ""}
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="instructor">Instructor Name</Label>
-                  <Input
-                    id="instructor"
-                    name="instructor"
-                    placeholder="John Smith"
-                    defaultValue={editingCourse?.instructor}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    placeholder="49.99"
-                    defaultValue={editingCourse?.price}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="thumbnail">Thumbnail Image URL</Label>
+                  <Label htmlFor="thumbnail">Thumbnail URL</Label>
                   <div className="flex gap-2">
                     <Input
                       id="thumbnail"
                       name="thumbnail"
-                      placeholder="/placeholder.svg?height=300&width=400"
-                      defaultValue=""
+                      placeholder="/images/courses/web/main.png"
+                      defaultValue={editingCourse?.thumbnail}
+                      required
                     />
                     <Button type="button" variant="outline" size="icon">
                       <Upload className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Enter image URL or click upload icon (mock)</p>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description (Markdown)</Label>
+                  <Label htmlFor="images">Gallery Images (one per line)</Label>
                   <Textarea
-                    id="description"
-                    name="description"
-                    placeholder="## Course Overview&#10;&#10;Learn **full-stack development** from scratch...&#10;&#10;### What You'll Build:&#10;- Real-world projects&#10;- Portfolio websites"
-                    defaultValue=""
-                    className="min-h-[150px] font-mono text-sm"
+                    id="images"
+                    name="images"
+                    placeholder="/images/courses/web/main.png"
+                    defaultValue={editingCourse?.images?.join("\n") ?? ""}
+                    className="min-h-[120px]"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Supports Markdown formatting (headers, bold, lists, etc.)
-                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description_en">Description (Markdown) - English</Label>
+                  <Textarea
+                    id="description_en"
+                    name="description_en"
+                    placeholder="## Course Overview\n\nThis course will teach you..."
+                    defaultValue={editingCourse ? editingCourse.description.en : ""}
+                    className="min-h-[160px] font-mono text-sm"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description_vi">Description (Markdown) - Vietnamese</Label>
+                  <Textarea
+                    id="description_vi"
+                    name="description_vi"
+                    placeholder="## Giới thiệu khóa học\n\nKhoá học này sẽ giúp bạn..."
+                    defaultValue={editingCourse ? editingCourse.description.vi : ""}
+                    className="min-h-[160px] font-mono text-sm"
+                    required
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="status">Status</Label>
@@ -210,13 +340,17 @@ export default function AdminCoursesPage() {
               <tbody>
                 {filteredCourses.map((course) => (
                   <tr key={course.id} className="border-b border-border last:border-0">
-                    <td className="py-3 text-sm font-medium">{course.title}</td>
+                    <td className="py-3 text-sm font-medium">
+                      {getLocalizedString(course.title, language) || course.slug}
+                    </td>
                     <td className="py-3 text-sm text-muted-foreground">{course.instructor}</td>
-                    <td className="py-3 text-sm font-medium">${course.price}</td>
+                    <td className="py-3 text-sm font-medium">
+                      {formatCurrency(course.price[currency], { currency })}
+                    </td>
                     <td className="py-3">
                       <Badge variant={course.status === "Published" ? "default" : "secondary"}>{course.status}</Badge>
                     </td>
-                    <td className="py-3 text-sm text-muted-foreground">{course.createdAt}</td>
+                    <td className="py-3 text-sm text-muted-foreground">{course.createdAt ?? "--"}</td>
                     <td className="py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEditCourse(course)}>

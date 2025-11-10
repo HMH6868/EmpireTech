@@ -9,8 +9,17 @@ import { Input } from "@/components/ui/input"
 import { reviews, type Review } from "@/lib/mock-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useLanguage } from "@/hooks/use-language"
+import type { LocalizedText } from "@/lib/mock-data"
+
+const getLocalizedString = (value: LocalizedText | string, lang: "en" | "vi") =>
+  typeof value === "string" ? value : value[lang] ?? ""
+
+const localizedToLower = (value: LocalizedText | string, lang: "en" | "vi") =>
+  getLocalizedString(value, lang).toLowerCase()
 
 export default function AdminReviewsPage() {
+  const { language } = useLanguage()
   const [reviewList, setReviewList] = useState(reviews)
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState<"all" | "product" | "course">("all")
@@ -18,10 +27,11 @@ export default function AdminReviewsPage() {
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
 
   const filteredReviews = reviewList.filter((review) => {
+    const normalizedQuery = searchQuery.toLowerCase()
     const matchesSearch =
-      review.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.comment.toLowerCase().includes(searchQuery.toLowerCase())
+      localizedToLower(review.itemName, language).includes(normalizedQuery) ||
+      review.userName.toLowerCase().includes(normalizedQuery) ||
+      localizedToLower(review.comment, language).includes(normalizedQuery)
 
     const matchesType = filterType === "all" || review.itemType === filterType
     const matchesRating = filterRating === "all" || review.rating === Number(filterRating)
@@ -126,7 +136,7 @@ export default function AdminReviewsPage() {
                   >
                     <td className="py-3 text-sm text-muted-foreground">#{review.id}</td>
                     <td className="py-3 text-sm font-medium">{review.userName}</td>
-                    <td className="py-3 text-sm">{review.itemName}</td>
+                    <td className="py-3 text-sm">{localizedToLower(review.itemName, language) || review.id}</td>
                     <td className="py-3">
                       <Badge variant="secondary">{review.itemType}</Badge>
                     </td>
@@ -200,7 +210,7 @@ export default function AdminReviewsPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Item</p>
-                <p className="text-sm">{selectedReview.itemName}</p>
+                <p className="text-sm">{getLocalizedString(selectedReview.itemName, language)}</p>
                 <Badge variant="secondary" className="mt-1">
                   {selectedReview.itemType}
                 </Badge>
@@ -221,7 +231,9 @@ export default function AdminReviewsPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Comment</p>
-                <p className="mt-1 rounded-lg bg-muted p-3 text-sm leading-relaxed">{selectedReview.comment}</p>
+                <p className="mt-1 rounded-lg bg-muted p-3 text-sm leading-relaxed">
+                  {getLocalizedString(selectedReview.comment, language)}
+                </p>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 {selectedReview.status !== "approved" && (
