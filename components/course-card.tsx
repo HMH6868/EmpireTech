@@ -32,6 +32,15 @@ export function CourseCard({ course }: CourseCardProps) {
           </h3>
         </Link>
         <p className="mt-2 text-sm text-muted-foreground">{course.instructor}</p>
+        {course.createdAt && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {new Date(course.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", { 
+              year: "numeric", 
+              month: "short", 
+              day: "numeric" 
+            })}
+          </p>
+        )}
         <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
