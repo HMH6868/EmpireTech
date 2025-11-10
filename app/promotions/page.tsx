@@ -14,6 +14,60 @@ import { useLanguage } from "@/hooks/use-language"
 const getLocalizedString = (value: LocalizedText | string, lang: "en" | "vi") =>
   typeof value === "string" ? value : value[lang] ?? ""
 
+const copy = {
+  title: {
+    en: "Special Promotions & Offers",
+    vi: "Ưu đãi và khuyến mãi đặc biệt",
+  },
+  description: {
+    en: "Save big with our exclusive discount codes and limited-time deals",
+    vi: "Tiết kiệm lớn với mã giảm giá độc quyền và ưu đãi có thời hạn",
+  },
+  activeTitle: { en: "Active Promotions", vi: "Khuyến mãi đang diễn ra" },
+  noActive: {
+    en: "No active promotions at the moment. Check back soon!",
+    vi: "Hiện chưa có khuyến mãi nào. Vui lòng quay lại sau!",
+  },
+  promoCodeLabel: { en: "PROMO CODE", vi: "MÃ KHUYẾN MÃI" },
+  validLabel: { en: "Valid", vi: "Hiệu lực" },
+  usageLabel: { en: "Usage", vi: "Lượt sử dụng" },
+  copyButton: { en: "Copy Code & Shop Now", vi: "Sao chép mã & mua sắm" },
+  toastTitle: { en: "Code copied!", vi: "Đã sao chép mã!" },
+  toastMessage: {
+    en: (code: string) => `Promo code "${code}" has been copied to clipboard.`,
+    vi: (code: string) => `Mã "${code}" đã được sao chép vào clipboard.`,
+  },
+  upcomingTitle: { en: "Coming Soon", vi: "Sắp diễn ra" },
+  upcomingSubtitle: {
+    en: "Mark your calendar for these upcoming deals",
+    vi: "Đừng bỏ lỡ những ưu đãi sắp tới",
+  },
+  howToTitle: { en: "How to Use Promo Codes", vi: "Cách sử dụng mã khuyến mãi" },
+  steps: [
+    {
+      title: { en: "Copy Code", vi: "Sao chép mã" },
+      description: {
+        en: "Click on the promo code to copy it to your clipboard",
+        vi: "Nhấn vào mã để sao chép nhanh vào clipboard",
+      },
+    },
+    {
+      title: { en: "Add to Cart", vi: "Thêm vào giỏ" },
+      description: {
+        en: "Browse products and add items to your shopping cart",
+        vi: "Chọn sản phẩm yêu thích và thêm vào giỏ hàng",
+      },
+    },
+    {
+      title: { en: "Apply & Save", vi: "Áp dụng & tiết kiệm" },
+      description: {
+        en: "Paste the code at checkout and enjoy your discount",
+        vi: "Nhập mã tại bước thanh toán để nhận ưu đãi",
+      },
+    },
+  ],
+}
+
 export default function PromotionsPage() {
   const { toast } = useToast()
   const { language } = useLanguage()
@@ -24,8 +78,8 @@ export default function PromotionsPage() {
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
     toast({
-      title: "Code copied!",
-      description: `Promo code "${code}" has been copied to clipboard.`,
+      title: copy.toastTitle[language],
+      description: copy.toastMessage[language](code),
     })
   }
 
@@ -34,35 +88,24 @@ export default function PromotionsPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/20 via-primary/10 to-background py-16">
+        <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-                <Tag className="h-8 w-8 text-primary-foreground" />
-              </div>
-              <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-                Special Promotions & Offers
-              </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
-                Save big with our exclusive discount codes and limited-time deals
-              </p>
-            </div>
+            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">{copy.title[language]}</h1>
+            <p className="mt-1 text-pretty text-base text-muted-foreground">{copy.description[language]}</p>
           </div>
         </section>
 
-        {/* Active Promotions */}
         <section className="py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex items-center gap-3">
               <TrendingUp className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold">Active Promotions</h2>
+              <h2 className="text-2xl font-bold">{copy.activeTitle[language]}</h2>
             </div>
 
             {activePromotions.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No active promotions at the moment. Check back soon!</p>
+                  <p className="text-muted-foreground">{copy.noActive[language]}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -81,9 +124,8 @@ export default function PromotionsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Promo Code */}
                       <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4">
-                        <p className="mb-2 text-xs font-medium text-muted-foreground">PROMO CODE</p>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">{copy.promoCodeLabel[language]}</p>
                         <div className="flex items-center justify-between">
                           <code className="text-2xl font-bold tracking-wider">{promo.code}</code>
                           <Button size="sm" variant="ghost" onClick={() => handleCopyCode(promo.code)} className="ml-2">
@@ -92,17 +134,16 @@ export default function PromotionsPage() {
                         </div>
                       </div>
 
-                      {/* Details */}
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            Valid: {promo.startDate} to {promo.endDate}
+                            {copy.validLabel[language]}: {promo.startDate} → {promo.endDate}
                           </span>
                         </div>
                         {promo.usageLimit && (
                           <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Usage:</span>
+                            <span className="text-muted-foreground">{copy.usageLabel[language]}:</span>
                             <span className="font-medium">
                               {promo.usedCount} / {promo.usageLimit}
                             </span>
@@ -113,7 +154,7 @@ export default function PromotionsPage() {
                       <Separator />
 
                       <Button className="w-full" onClick={() => handleCopyCode(promo.code)}>
-                        Copy Code & Shop Now
+                        {copy.copyButton[language]}
                       </Button>
                     </CardContent>
                   </Card>
@@ -123,13 +164,12 @@ export default function PromotionsPage() {
           </div>
         </section>
 
-        {/* Upcoming Promotions */}
         {upcomingPromotions.length > 0 && (
           <section className="border-t border-border/40 bg-muted/30 py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold">Coming Soon</h2>
-                <p className="mt-2 text-muted-foreground">Mark your calendar for these upcoming deals</p>
+                <h2 className="text-2xl font-bold">{copy.upcomingTitle[language]}</h2>
+                <p className="mt-2 text-muted-foreground">{copy.upcomingSubtitle[language]}</p>
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -146,7 +186,9 @@ export default function PromotionsPage() {
                             <Badge variant="secondary">Upcoming</Badge>
                           </div>
                           <h3 className="mb-1 font-semibold">{getLocalizedString(promo.description, language)}</h3>
-                          <p className="text-sm text-muted-foreground">Starts on {promo.startDate}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {language === "vi" ? "Bắt đầu từ" : "Starts on"} {promo.startDate}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -157,41 +199,22 @@ export default function PromotionsPage() {
           </section>
         )}
 
-        {/* How to Use */}
         <section className="border-t border-border/40 py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl">
-              <h2 className="mb-8 text-center text-2xl font-bold">How to Use Promo Codes</h2>
+              <h2 className="mb-8 text-center text-2xl font-bold">{copy.howToTitle[language]}</h2>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
-                      1
-                    </div>
-                    <h3 className="mb-2 font-semibold">Copy Code</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Click on the promo code to copy it to your clipboard
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
-                      2
-                    </div>
-                    <h3 className="mb-2 font-semibold">Add to Cart</h3>
-                    <p className="text-sm text-muted-foreground">Browse products and add items to your shopping cart</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
-                      3
-                    </div>
-                    <h3 className="mb-2 font-semibold">Apply & Save</h3>
-                    <p className="text-sm text-muted-foreground">Paste the code at checkout and enjoy your discount</p>
-                  </CardContent>
-                </Card>
+                {copy.steps.map((step, index) => (
+                  <Card key={step.title.en}>
+                    <CardContent className="p-6 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
+                        {index + 1}
+                      </div>
+                      <h3 className="mb-2 font-semibold">{step.title[language]}</h3>
+                      <p className="text-sm text-muted-foreground">{step.description[language]}</p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           </div>

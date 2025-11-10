@@ -16,10 +16,10 @@ export default function AccountsPage() {
     selectedCategory === "all" ? products : products.filter((product) => product.categoryId === selectedCategory)
 
   const copy = {
-    title: { en: "Premium Digital Accounts", vi: "Tài khoản số cao cấp" },
+    title: { en: "Premium Digital Accounts", vi: "Tài khoản Premium" },
     description: {
       en: "Browse our collection of verified premium accounts with instant delivery",
-      vi: "Khám phá kho tài khoản uy tín, giao ngay trong vài phút",
+      vi: "Kho tài khoản uy tín, giao ngay trong vài phút",
     },
     empty: { en: "No products found in this category.", vi: "Không có sản phẩm trong danh mục này." },
   }
@@ -30,10 +30,10 @@ export default function AccountsPage() {
 
       <main className="flex-1">
         {/* Page Header */}
-        <section className="border-b border-border/40 bg-muted/30 py-12">
+        <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{copy.title[language]}</h1>
-            <p className="mt-3 text-pretty text-lg text-muted-foreground">{copy.description[language]}</p>
+            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">{copy.title[language]}</h1>
+            <p className="mt-1 text-pretty text-base text-muted-foreground">{copy.description[language]}</p>
           </div>
         </section>
 

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Mail, Phone, MapPin } from "lucide-react"
 import { Header } from "@/components/header"
@@ -12,9 +11,179 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/hooks/use-language"
+
+const copy = {
+  title: {
+    en: "Policies & Contact",
+    vi: "Chính sách & Liên hệ",
+  },
+  description: {
+    en: "Important information and how to reach us",
+    vi: "Thông tin quan trọng và cách liên hệ với chúng tôi",
+  },
+  sections: [
+    {
+      id: "terms",
+      title: { en: "Terms of Service", vi: "Điều khoản dịch vụ" },
+      content: [
+        {
+          type: "p",
+          text: {
+            en: "Welcome to Empire Tech. By accessing or using our platform, you agree to be bound by these Terms of Service and all applicable laws and regulations.",
+            vi: "Chào mừng bạn đến với Empire Tech. Khi truy cập hoặc sử dụng nền tảng, bạn đồng ý tuân thủ các điều khoản dịch vụ và mọi quy định pháp luật hiện hành.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Account Usage", vi: "Sử dụng tài khoản" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "All digital accounts sold on our platform are for personal use only. Sharing, reselling, or redistributing purchased accounts is prohibited.",
+            vi: "Mọi tài khoản số bán trên nền tảng chỉ dành cho mục đích cá nhân. Nghiêm cấm chia sẻ, bán lại hoặc phân phối lại các tài khoản đã mua.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Intellectual Property", vi: "Quyền sở hữu trí tuệ" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "All content on Empire Tech is protected by international copyright laws. Any unauthorized use is strictly prohibited.",
+            vi: "Mọi nội dung trên Empire Tech được bảo vệ bởi luật bản quyền quốc tế. Nghiêm cấm mọi hành vi sử dụng trái phép.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Limitation of Liability", vi: "Giới hạn trách nhiệm" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "Empire Tech is not liable for indirect, incidental, or consequential damages arising from the use of our services.",
+            vi: "Empire Tech không chịu trách nhiệm đối với các thiệt hại gián tiếp, ngẫu nhiên hoặc do hậu quả phát sinh từ việc sử dụng dịch vụ.",
+          },
+        },
+      ],
+    },
+    {
+      id: "privacy",
+      title: { en: "Privacy Policy", vi: "Chính sách bảo mật" },
+      content: [
+        {
+          type: "p",
+          text: {
+            en: "We value your privacy. This policy explains what data we collect, how we use it, and how we keep it safe.",
+            vi: "Chúng tôi coi trọng quyền riêng tư của bạn. Chính sách này giải thích dữ liệu được thu thập, cách sử dụng và biện pháp bảo vệ.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Information We Collect", vi: "Dữ liệu chúng tôi thu thập" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "We collect information you provide directly, including name, email, payment info, and messages sent to support.",
+            vi: "Chúng tôi thu thập thông tin bạn cung cấp trực tiếp như tên, email, thông tin thanh toán và nội dung gửi đến bộ phận hỗ trợ.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "How We Use Your Information", vi: "Cách chúng tôi sử dụng dữ liệu" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "Data is used to deliver services, process transactions, send updates, and improve user experience.",
+            vi: "Dữ liệu được dùng để cung cấp dịch vụ, xử lý giao dịch, gửi thông báo và cải thiện trải nghiệm người dùng.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Data Security", vi: "Bảo mật dữ liệu" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "We implement technical and organizational measures to protect your information, though no method is 100% secure.",
+            vi: "Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức để bảo vệ thông tin, tuy nhiên không phương thức nào đảm bảo an toàn tuyệt đối.",
+          },
+        },
+      ],
+    },
+    {
+      id: "refund",
+      title: { en: "Refund Policy", vi: "Chính sách hoàn tiền" },
+      content: [
+        {
+          type: "p",
+          text: {
+            en: "We aim for complete satisfaction. If a product fails to work as described, contact us within 48 hours for support or refund consideration.",
+            vi: "Chúng tôi mong muốn bạn hài lòng tuyệt đối. Nếu sản phẩm không hoạt động đúng mô tả, hãy liên hệ trong vòng 48 giờ để được hỗ trợ hoặc xem xét hoàn tiền.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Eligibility", vi: "Điều kiện" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "Eligible refunds require proof of issue, unused credentials, and cooperation during troubleshooting.",
+            vi: "Để đủ điều kiện hoàn tiền, cần có bằng chứng lỗi, tài khoản chưa sử dụng và hợp tác khi kiểm tra.",
+          },
+        },
+        {
+          type: "h3",
+          text: { en: "Non-Refundable Items", vi: "Các trường hợp không hoàn tiền" },
+        },
+        {
+          type: "p",
+          text: {
+            en: "Courses already accessed and accounts delivered in working condition are non-refundable.",
+            vi: "Khóa học đã truy cập và tài khoản đã bàn giao hoạt động bình thường sẽ không được hoàn tiền.",
+          },
+        },
+      ],
+    },
+  ],
+  contactCard: {
+    title: { en: "Contact Us", vi: "Liên hệ với chúng tôi" },
+    subtitle: { en: "Have questions? We're here to help", vi: "Có thắc mắc? Chúng tôi luôn sẵn sàng hỗ trợ" },
+  },
+  form: {
+    nameLabel: { en: "Name", vi: "Họ và tên" },
+    namePlaceholder: { en: "Your name", vi: "Nhập họ tên" },
+    emailLabel: { en: "Email", vi: "Email" },
+    emailPlaceholder: { en: "you@example.com", vi: "ban@example.com" },
+    messageLabel: { en: "Message", vi: "Nội dung" },
+    messagePlaceholder: { en: "How can we help?", vi: "Bạn cần hỗ trợ gì?" },
+    submit: { en: "Send Message", vi: "Gửi tin nhắn" },
+    sending: { en: "Sending...", vi: "Đang gửi..." },
+    toastTitle: { en: "Message sent", vi: "Đã gửi tin nhắn" },
+    toastDesc: {
+      en: "We'll get back to you as soon as possible.",
+      vi: "Chúng tôi sẽ phản hồi trong thời gian sớm nhất.",
+    },
+  },
+  contactInfo: {
+    heading: { en: "Get in Touch", vi: "Kết nối với chúng tôi" },
+    email: { en: "Email", vi: "Email" },
+    phone: { en: "Phone", vi: "Điện thoại" },
+    address: { en: "Address", vi: "Địa chỉ" },
+    emailValue: "support@empiretech.com",
+    phoneValue: "+1 (555) 123-4567",
+    addressValue: "123 Tech Street, Digital City",
+  },
+}
 
 export default function PoliciesPage() {
   const { toast } = useToast()
+  const { language } = useLanguage()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
@@ -24,11 +193,10 @@ export default function PoliciesPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Mock form submission
     setTimeout(() => {
       toast({
-        title: "Message sent",
-        description: "We'll get back to you as soon as possible.",
+        title: copy.form.toastTitle[language],
+        description: copy.form.toastDesc[language],
       })
       setName("")
       setEmail("")
@@ -42,134 +210,67 @@ export default function PoliciesPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Page Header */}
-        <section className="border-b border-border/40 bg-muted/30 py-12">
+        <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Policies & Contact</h1>
-            <p className="mt-3 text-pretty text-lg text-muted-foreground">Important information and how to reach us</p>
+            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">{copy.title[language]}</h1>
+            <p className="mt-1 text-pretty text-base text-muted-foreground">{copy.description[language]}</p>
           </div>
         </section>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
-            {/* Policies Content */}
-            <div className="lg:col-span-2 space-y-12">
-              {/* Terms of Service */}
-              <section id="terms">
-                <h2 className="text-2xl font-bold">Terms of Service</h2>
-                <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
-                  <p>
-                    Welcome to Empire Tech. By accessing or using our platform, you agree to be bound by these Terms of
-                    Service and all applicable laws and regulations.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Account Usage</h3>
-                  <p>
-                    All digital accounts sold on our platform are for personal use only. You agree not to share, resell,
-                    or redistribute any purchased accounts. We reserve the right to terminate access to accounts that
-                    violate these terms.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Intellectual Property</h3>
-                  <p>
-                    All content on Empire Tech, including text, graphics, logos, and software, is the property of Empire
-                    Tech or its content suppliers and is protected by international copyright laws.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Limitation of Liability</h3>
-                  <p>
-                    Empire Tech shall not be liable for any indirect, incidental, special, consequential, or punitive
-                    damages resulting from your use of or inability to use the service.
-                  </p>
-                </div>
-              </section>
-
-              {/* Privacy Policy */}
-              <section id="privacy">
-                <h2 className="text-2xl font-bold">Privacy Policy</h2>
-                <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
-                  <p>
-                    At Empire Tech, we take your privacy seriously. This Privacy Policy explains how we collect, use,
-                    disclose, and safeguard your information.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Information We Collect</h3>
-                  <p>
-                    We collect information that you provide directly to us, including your name, email address, payment
-                    information, and any other information you choose to provide when using our services.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">How We Use Your Information</h3>
-                  <p>
-                    We use the information we collect to provide, maintain, and improve our services, process
-                    transactions, send you technical notices and support messages, and respond to your comments and
-                    questions.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Data Security</h3>
-                  <p>
-                    We implement appropriate technical and organizational measures to protect the security of your
-                    personal information. However, no electronic transmission over the internet is 100% secure.
-                  </p>
-                </div>
-              </section>
-
-              {/* Refund Policy */}
-              <section id="refund">
-                <h2 className="text-2xl font-bold">Refund Policy</h2>
-                <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
-                  <p>
-                    We want you to be completely satisfied with your purchase. If you encounter any issues with your
-                    digital account, please contact us immediately.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Refund Eligibility</h3>
-                  <p>
-                    Refunds are available within 24 hours of purchase if the account is not working as described. To be
-                    eligible for a refund, you must provide proof of the issue and not have changed any account
-                    credentials.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Refund Process</h3>
-                  <p>
-                    To request a refund, contact our support team with your order number and a description of the issue.
-                    Approved refunds will be processed within 5-7 business days to your original payment method.
-                  </p>
-                  <h3 className="text-lg font-semibold text-foreground">Non-Refundable Items</h3>
-                  <p>
-                    Course enrollments and accounts that have been successfully accessed and used are not eligible for
-                    refunds unless there is a verified technical issue on our end.
-                  </p>
-                </div>
-              </section>
+            <div className="space-y-12 lg:col-span-2">
+              {copy.sections.map((section) => (
+                <section key={section.id} id={section.id}>
+                  <h2 className="text-2xl font-bold">{section.title[language]}</h2>
+                  <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
+                    {section.content.map((block, index) =>
+                      block.type === "h3" ? (
+                        <h3 key={index} className="text-lg font-semibold text-foreground">
+                          {block.text[language]}
+                        </h3>
+                      ) : (
+                        <p key={index}>{block.text[language]}</p>
+                      ),
+                    )}
+                  </div>
+                </section>
+              ))}
             </div>
 
-            {/* Contact Form */}
             <div className="lg:col-span-1">
               <div className="sticky top-20 space-y-6">
                 <Card id="contact">
                   <CardContent className="p-6">
-                    <h2 className="text-xl font-bold">Contact Us</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Have questions? We're here to help</p>
+                    <h2 className="text-xl font-bold">{copy.contactCard.title[language]}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{copy.contactCard.subtitle[language]}</p>
                     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">{copy.form.nameLabel[language]}</Label>
                         <Input
                           id="name"
-                          placeholder="Your name"
+                          placeholder={copy.form.namePlaceholder[language]}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{copy.form.emailLabel[language]}</Label>
                         <Input
                           id="email"
                           type="email"
-                          placeholder="you@example.com"
+                          placeholder={copy.form.emailPlaceholder[language]}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="message">Message</Label>
+                        <Label htmlFor="message">{copy.form.messageLabel[language]}</Label>
                         <Textarea
                           id="message"
-                          placeholder="How can we help?"
+                          placeholder={copy.form.messagePlaceholder[language]}
                           rows={4}
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
@@ -177,7 +278,7 @@ export default function PoliciesPage() {
                         />
                       </div>
                       <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Sending..." : "Send Message"}
+                        {isLoading ? copy.form.sending[language] : copy.form.submit[language]}
                       </Button>
                     </form>
                   </CardContent>
@@ -185,15 +286,15 @@ export default function PoliciesPage() {
 
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-semibold">Get in Touch</h3>
+                    <h3 className="font-semibold">{copy.contactInfo.heading[language]}</h3>
                     <div className="mt-4 space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                           <Mail className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Email</p>
-                          <p className="text-sm text-muted-foreground">support@empiretech.com</p>
+                          <p className="text-sm font-medium">{copy.contactInfo.email[language]}</p>
+                          <p className="text-sm text-muted-foreground">{copy.contactInfo.emailValue}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -201,8 +302,8 @@ export default function PoliciesPage() {
                           <Phone className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Phone</p>
-                          <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                          <p className="text-sm font-medium">{copy.contactInfo.phone[language]}</p>
+                          <p className="text-sm text-muted-foreground">{copy.contactInfo.phoneValue}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -210,8 +311,8 @@ export default function PoliciesPage() {
                           <MapPin className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Address</p>
-                          <p className="text-sm text-muted-foreground">123 Tech Street, Digital City</p>
+                          <p className="text-sm font-medium">{copy.contactInfo.address[language]}</p>
+                          <p className="text-sm text-muted-foreground">{copy.contactInfo.addressValue}</p>
                         </div>
                       </div>
                     </div>
