@@ -13,6 +13,7 @@ import { courses, products } from '@/lib/mock-data';
 import {
   ArrowRight,
   BookOpen,
+  BrainCircuit,
   ChevronRight,
   Clock,
   Gift,
@@ -20,6 +21,7 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
+  Tv,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -109,17 +111,17 @@ export default function HomePage() {
       vi: 'Hàng ngàn khách hàng đã tin chọn - Uy tín được đảm bảo',
     },
     viewAllAccounts: { en: 'View All Products', vi: 'Xem tất cả' },
-    learningHeading: { en: '📚 Learning & Productivity', vi: '📚 Học tập & Năng suất' },
+    learningHeading: { en: 'Learning & Productivity', vi: 'Học tập & Năng suất' },
     learningDescription: {
       en: 'Premium tools to boost your productivity and learning',
       vi: 'Công cụ cao cấp giúp tăng năng suất học tập và làm việc',
     },
-    entertainmentHeading: { en: '🎬 Entertainment & Streaming', vi: '🎬 Giải trí & Streaming' },
+    entertainmentHeading: { en: 'Entertainment & Streaming', vi: 'Giải trí & Streaming' },
     entertainmentDescription: {
       en: 'Unlimited access to movies, music, and entertainment',
       vi: 'Truy cập không giới hạn phim ảnh, âm nhạc và giải trí',
     },
-    toolsHeading: { en: '🛠️ Design & AI Tools', vi: '🛠️ Công cụ thiết kế & AI' },
+    toolsHeading: { en: 'Design & AI Tools', vi: 'Công cụ thiết kế & AI' },
     toolsDescription: {
       en: 'Professional design and AI tools for creators',
       vi: 'Công cụ thiết kế và AI chuyên nghiệp cho nhà sáng tạo',
@@ -155,52 +157,54 @@ export default function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Main Banner */}
               <div className="lg:col-span-9">
-                <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden group shadow-2xl">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-r ${banners[currentBanner].gradient} transition-all duration-1000`}
-                    style={{
-                      backgroundImage: banners[currentBanner].bgPattern,
-                      backgroundBlendMode: 'overlay',
-                    }}
-                  >
-                    <div className="relative h-full flex flex-col justify-center px-8 lg:px-16">
-                      <Badge className="w-fit mb-4 bg-red-500 hover:bg-red-600 text-white border-0 px-6 py-2 text-base font-bold animate-pulse shadow-lg">
-                        {banners[currentBanner].tag[language]}
-                      </Badge>
-                      <h2 className="text-5xl lg:text-7xl font-black mb-4 text-foreground drop-shadow-2xl leading-tight">
-                        {banners[currentBanner].title[language]}
-                      </h2>
-                      <p className="text-3xl lg:text-5xl font-bold text-primary mb-8 drop-shadow-lg">
-                        {banners[currentBanner].subtitle[language]}
-                      </p>
-                      <div className="flex gap-4">
-                        <Link href="/accounts">
-                          <Button
-                            size="lg"
-                            className="gap-2 px-10 py-6 text-lg bg-primary hover:bg-primary/90 shadow-2xl hover:shadow-primary/50 transition-all hover:scale-105"
-                          >
-                            {language === 'vi' ? 'Mua ngay' : 'Shop Now'}
-                            <ArrowRight className="h-6 w-6" />
-                          </Button>
-                        </Link>
+                <div className="h-[400px] lg:h-[500px]">
+                  <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-200/50 hover:shadow-xl transition-all cursor-pointer group h-full">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-r ${banners[currentBanner].gradient} transition-all duration-1000`}
+                      style={{
+                        backgroundImage: banners[currentBanner].bgPattern,
+                        backgroundBlendMode: 'overlay',
+                      }}
+                    >
+                      <div className="relative h-full flex flex-col justify-center px-8 lg:px-16">
+                        <Badge className="w-fit mb-4 bg-red-500 hover:bg-red-600 text-white border-0 px-6 py-2 text-base font-bold animate-pulse shadow-lg">
+                          {banners[currentBanner].tag[language]}
+                        </Badge>
+                        <h2 className="text-5xl lg:text-7xl font-black mb-4 text-foreground drop-shadow-2xl leading-tight">
+                          {banners[currentBanner].title[language]}
+                        </h2>
+                        <p className="text-3xl lg:text-5xl font-bold text-primary mb-8 drop-shadow-lg">
+                          {banners[currentBanner].subtitle[language]}
+                        </p>
+                        <div className="flex gap-4">
+                          <Link href="/accounts">
+                            <Button
+                              size="lg"
+                              className="gap-2 px-10 py-6 text-lg bg-primary hover:bg-primary/90 shadow-2xl hover:shadow-primary/50 transition-all hover:scale-105"
+                            >
+                              {language === 'vi' ? 'Mua ngay' : 'Shop Now'}
+                              <ArrowRight className="h-6 w-6" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Carousel Indicators */}
-                  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
-                    {banners.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentBanner(index)}
-                        className={`h-2.5 rounded-full transition-all ${
-                          currentBanner === index
-                            ? 'w-10 bg-primary shadow-lg'
-                            : 'w-2.5 bg-primary/40 hover:bg-primary/60'
-                        }`}
-                      />
-                    ))}
-                  </div>
+                    {/* Carousel Indicators */}
+                    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+                      {banners.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentBanner(index)}
+                          className={`h-2.5 rounded-full transition-all ${
+                            currentBanner === index
+                              ? 'w-10 bg-primary shadow-lg'
+                              : 'w-2.5 bg-primary/40 hover:bg-primary/60'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </Card>
                 </div>
               </div>
 
@@ -290,7 +294,10 @@ export default function HomePage() {
                 <p className="text-muted-foreground">{copy.popularDescription[language]}</p>
               </div>
               <Link href="/accounts" className="hidden md:block">
-                <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                <Button
+                  variant="ghost"
+                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
+                >
                   {copy.viewAllAccounts[language]}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -363,13 +370,17 @@ export default function HomePage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight mb-2">
+                <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-2">
+                  <GraduationCap className="h-6 w-6 text-primary" />
                   {copy.learningHeading[language]}
                 </h2>
                 <p className="text-muted-foreground">{copy.learningDescription[language]}</p>
               </div>
               <Link href="/accounts?category=productivity" className="hidden md:block">
-                <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                <Button
+                  variant="ghost"
+                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
+                >
                   {language === 'vi' ? 'Xem thêm' : 'View More'}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -388,13 +399,17 @@ export default function HomePage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight mb-2">
+                <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-2">
+                  <Tv className="h-6 w-6 text-primary font-bold" />
                   {copy.entertainmentHeading[language]}
                 </h2>
                 <p className="text-muted-foreground">{copy.entertainmentDescription[language]}</p>
               </div>
               <Link href="/accounts?category=entertainment" className="hidden md:block">
-                <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                <Button
+                  variant="ghost"
+                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
+                >
                   {language === 'vi' ? 'Xem thêm' : 'View More'}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -413,13 +428,17 @@ export default function HomePage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight mb-2">
+                <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-2">
+                  <BrainCircuit className="h-6 w-6 text-primary" />
                   {copy.toolsHeading[language]}
                 </h2>
                 <p className="text-muted-foreground">{copy.toolsDescription[language]}</p>
               </div>
               <Link href="/accounts?category=tools" className="hidden md:block">
-                <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                <Button
+                  variant="ghost"
+                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
+                >
                   {language === 'vi' ? 'Xem thêm' : 'View More'}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -452,7 +471,10 @@ export default function HomePage() {
                 </p>
               </div>
               <Link href="/courses" className="hidden md:block">
-                <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                <Button
+                  variant="ghost"
+                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
+                >
                   {copy.viewAllCourses[language]}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -465,19 +487,6 @@ export default function HomePage() {
                   <CourseCard course={course} />
                 </div>
               ))}
-            </div>
-
-            <div className="mt-10 text-center">
-              <Link href="/courses">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-2 bg-gradient-to-r from-primary/10 to-blue-500/10 hover:from-primary/20 hover:to-blue-500/20 border-primary/30"
-                >
-                  {copy.viewAllCourses[language]}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
           </div>
         </section>
