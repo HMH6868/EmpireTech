@@ -15,6 +15,7 @@ import {
   ArrowRight,
   BookOpen,
   BrainCircuit,
+  ChevronLeft,
   ChevronRight,
   Clock,
   Gift,
@@ -71,7 +72,6 @@ export default function HomePage() {
 
   const activeBanner = banners[currentBanner];
 
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -116,7 +116,19 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    {/* Carousel Indicators */}
+                    {/* Carousel Controls */}
+                    <div className="absolute inset-y-0 left-4 z-20 flex items-center">
+                      <button
+                        aria-label="Previous banner"
+                        title={homeT('hero.previous')}
+                        onClick={() =>
+                          setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length)
+                        }
+                        className="hidden group-hover:flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-transform shadow-lg"
+                      >
+                        <ChevronLeft className="h-5 w-5 text-primary" />
+                      </button>
+                    </div>
                     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
                       {banners.map((_, index) => (
                         <button
@@ -129,6 +141,17 @@ export default function HomePage() {
                           }`}
                         />
                       ))}
+                    </div>
+
+                    <div className="absolute inset-y-0 right-4 z-20 flex items-center">
+                      <button
+                        aria-label="Next banner"
+                        title={homeT('hero.next')}
+                        onClick={() => setCurrentBanner((prev) => (prev + 1) % banners.length)}
+                        className="hidden group-hover:flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-transform shadow-lg"
+                      >
+                        <ChevronRight className="h-5 w-5 text-primary" />
+                      </button>
                     </div>
                   </Card>
                 </div>
@@ -143,7 +166,9 @@ export default function HomePage() {
                         <Badge className="mb-3 bg-purple-500 hover:bg-purple-600 border-0 shadow-lg">
                           {homeT('sideBanners.vpnBadge')}
                         </Badge>
-                        <h3 className="text-2xl font-black mb-2">{homeT('sideBanners.vpnTitle')}</h3>
+                        <h3 className="text-2xl font-black mb-2">
+                          {homeT('sideBanners.vpnTitle')}
+                        </h3>
                         <p className="text-sm text-muted-foreground font-semibold">
                           {homeT('sideBanners.vpnSubtitle')}
                         </p>
@@ -189,7 +214,9 @@ export default function HomePage() {
                     <Icon className="h-7 w-7" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">{homeT(`features.${key}Title`)}</h3>
+                    <h3 className="font-semibold text-base mb-1">
+                      {homeT(`features.${key}Title`)}
+                    </h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       {homeT(`features.${key}Description`)}
                     </p>
@@ -323,7 +350,9 @@ export default function HomePage() {
                   <Tv className="h-6 w-6 text-primary font-bold" />
                   {homeT('sections.entertainmentTitle')}
                 </h2>
-                <p className="text-muted-foreground">{homeT('sections.entertainmentDescription')}</p>
+                <p className="text-muted-foreground">
+                  {homeT('sections.entertainmentDescription')}
+                </p>
               </div>
               <Link href="/accounts?category=entertainment" className="hidden md:block">
                 <Button

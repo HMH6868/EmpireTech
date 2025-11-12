@@ -11,7 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
+import { i18nConfig } from '@/i18nConfig';
 import { Gift, LogIn, Menu, ShoppingCart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,9 +23,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [cartCount] = useState(3); // Mock cart count
-  const [isLoggedIn] = useState(false); // Mock auth state
+  const [cartCount] = useState(3);
+  const [isLoggedIn] = useState(false);
   const t = useTranslations('common');
+  const { locale } = useLanguage();
   const pathname = usePathname();
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
@@ -36,9 +39,31 @@ export function Header() {
     { href: '/policies', labelKey: 'nav.policies' },
   ] as const;
 
+  const getLocalizedHref = (path: string) => {
+    if (!path.startsWith('/')) {
+      return path;
+    }
+    const [pathnamePart, search] = path.split('?');
+    const normalized = pathnamePart.replace(/^\/+/, '');
+    const localized = normalized ? `/${locale}/${normalized}` : `/${locale}`;
+    return search ? `${localized}?${search}` : localized;
+  };
+
+  const normalizedPathname = useMemo(() => {
+    if (!pathname) return '/';
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length > 0 && i18nConfig.locales.includes(segments[0] as any)) {
+      segments.shift();
+    }
+    return '/' + segments.join('/');
+  }, [pathname]);
+
   const activeIndex = useMemo(
-    () => navLinks.findIndex((link) => pathname === link.href),
-    [pathname],
+    () =>
+      navLinks.findIndex((link) =>
+        link.href === '/' ? normalizedPathname === '/' : normalizedPathname?.startsWith(link.href)
+      ),
+    [normalizedPathname]
   );
 
   useEffect(() => {
@@ -80,7 +105,7 @@ export function Header() {
       }`}
     >
       <div className="bg-primary/10 py-2 text-center">
-        <Link href="/promotions" className="text-xs font-medium hover:underline">
+        <Link href={getLocalizedHref('/promotions')} className="text-xs font-medium hover:underline">
           <Gift className="mr-1 inline-block h-4 w-4" />
           {t('promo.message')}
         </Link>
@@ -89,7 +114,7 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href={getLocalizedHref('/')} className="flex items-center gap-2">
             <div className="relative h-9 w-9">
               <Image
                 src="/logo.png"
@@ -104,19 +129,26 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-3 px-2 py-1 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
-                  pathname === link.href
-                    ? "bg-background text-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/30"
-                    : "text-foreground/70 hover:text-foreground"
-                }`}
-              >
-                {t(link.labelKey)}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === '/'
+                  ? normalizedPathname === '/'
+                  : normalizedPathname?.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={getLocalizedHref(link.href)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`rounded-full px-3 py-1 text-sm transition-all ${
+                    isActive
+                      ? 'font-bold text-foreground'
+                      : 'font-medium text-foreground/70 hover:text-foreground'
+                  }`}
+                >
+                  {t(link.labelKey)}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right Side Actions */}
@@ -125,7 +157,7 @@ export function Header() {
               <LanguageSwitcher size="sm" />
             </div>
             {/* Cart */}
-            <Link href="/cart">
+            <Link href={getLocalizedHref('/cart')}>
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
@@ -146,19 +178,19 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link href="/user/profile">
+                    <Link href={getLocalizedHref('/user/profile')}>
                       <User className="mr-2 h-4 w-4" />
                       {t('auth.profile')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/user/orders">
+                    <Link href={getLocalizedHref('/user/orders')}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       {t('auth.orders')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/user/courses">
+                    <Link href={getLocalizedHref('/user/courses')}>
                       <User className="mr-2 h-4 w-4" />
                       {t('auth.courses')}
                     </Link>
@@ -170,7 +202,7 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/login" className="hidden sm:block">
+              <Link href={getLocalizedHref('/login')} className="hidden sm:block">
                 <Button variant="default" size="sm" className="gap-2">
                   <LogIn className="h-4 w-4" />
                   {t('auth.login')}
@@ -190,23 +222,30 @@ export function Header() {
                   <div className="mb-2 flex justify-center">
                     <LanguageSwitcher size="md" />
                   </div>
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`rounded-full px-4 py-2 text-base font-medium transition-all ${
-                        pathname === link.href
-                          ? "bg-primary/10 text-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/30"
-                          : "text-foreground/80 hover:text-foreground/90"
-                      }`}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {t(link.labelKey)}
-                    </Link>
-                  ))}
+                  {navLinks.map((link) => {
+                    const isActive =
+                      link.href === '/'
+                        ? normalizedPathname === '/'
+                        : normalizedPathname?.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={getLocalizedHref(link.href)}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`rounded-full px-4 py-2 text-base transition-all ${
+                          isActive
+                            ? 'font-bold text-foreground'
+                            : 'font-medium text-foreground/80 hover:text-foreground/90'
+                        }`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {t(link.labelKey)}
+                      </Link>
+                    );
+                  })}
                   <div className="mt-4 border-t pt-4">
                     {!isLoggedIn && (
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
+                      <Link href={getLocalizedHref('/login')} onClick={() => setIsOpen(false)}>
                         <Button className="w-full gap-2">
                           <LogIn className="h-4 w-4" />
                           {t('auth.login')}

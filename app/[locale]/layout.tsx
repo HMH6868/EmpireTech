@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import type React from 'react';
+import { Suspense } from 'react';
 import { metadataBase } from '../layout';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,31 +19,38 @@ const baseMetadata: Metadata = {
   },
 };
 
-type LayoutProps = {
-  children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+type LayoutParams = {
+  locale: string;
 };
 
-const isSupportedLocale = (locale: string): locale is Locale => i18nConfig.locales.includes(locale as Locale);
+type LayoutProps = Readonly<{
+  children: React.ReactNode;
+  params: Promise<LayoutParams>;
+}>;
+
+const isSupportedLocale = (locale: string): locale is Locale =>
+  i18nConfig.locales.includes(locale as Locale);
+
+const resolveParams = async (params: LayoutProps['params']) => params;
 
 export function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({ params }: Pick<LayoutProps, 'params'>): Promise<Metadata> {
-  const { locale } = await params;
+export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
+  const { locale } = await resolveParams(params);
 
   if (!isSupportedLocale(locale)) {
     notFound();
   }
 
   const languages = Object.fromEntries(i18nConfig.locales.map((lng) => [lng, `/${lng}`]));
-  const commonT = await getTranslations(locale, 'common');
+  const commonTranslator = await getTranslations(locale, 'common');
 
   return {
     ...baseMetadata,
-    title: commonT('seo.title'),
-    description: commonT('seo.description'),
+    title: commonTranslator('seo.title'),
+    description: commonTranslator('seo.description'),
     metadataBase,
     alternates: {
       languages,
@@ -51,7 +59,7 @@ export async function generateMetadata({ params }: Pick<LayoutProps, 'params'>):
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
-  const { locale } = await params;
+  const { locale } = await resolveParams(params);
 
   if (!isSupportedLocale(locale)) {
     notFound();
@@ -60,10 +68,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} font-sans antialiased`}>
-        <LanguageProvider>
-          {children}
-          <Analytics />
-        </LanguageProvider>
+        <Suspense fallback={null}>
+          <LanguageProvider>
+            {children}
+            <Analytics />
+          </LanguageProvider>
+        </Suspense>
       </body>
     </html>
   );

@@ -9,7 +9,9 @@
     "viewPromotions": "View Promotions",
     "browseAccounts": "Browse Accounts",
     "readyTitle": "Ready to Get Started?",
-    "readyDescription": "Join thousands of satisfied customers and start accessing premium digital services today"
+    "readyDescription": "Join thousands of satisfied customers and start accessing premium digital services today",
+    "previous": "Previous",
+    "next": "Next"
   },
   "banners": {
     "steamTitle": "Steam Accounts",

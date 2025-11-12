@@ -17,7 +17,9 @@ import errorsVi from '@/locales/vi/errors.json';
 export type Namespace = 'common' | 'home' | 'products' | 'cart' | 'auth' | 'errors';
 
 type TranslationValue = string | TranslationTree;
-type TranslationTree = Record<string, TranslationValue>;
+interface TranslationTree {
+  [key: string]: TranslationValue;
+}
 
 const translationStore: Record<Locale, Record<Namespace, TranslationTree>> = {
   en: {
