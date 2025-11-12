@@ -1,0 +1,53 @@
+{
+  "brand": "Empire Tech",
+  "tagline": "Your trusted platform for premium digital accounts and online courses.",
+  "promo": {
+    "message": "Special Offer: Get 20% off your first purchase! Use code WELCOME20",
+    "link": "View promotions"
+  },
+  "seo": {
+    "title": "Empire Tech - Premium Digital Accounts & Courses",
+    "description": "Your trusted platform for premium digital accounts and online courses"
+  },
+  "nav": {
+    "home": "Home",
+    "accounts": "Accounts",
+    "courses": "Courses",
+    "promotions": "Promotions",
+    "policies": "Policies & Contact"
+  },
+  "auth": {
+    "login": "Login",
+    "profile": "Profile",
+    "orders": "My Orders",
+    "courses": "My Courses",
+    "logout": "Logout"
+  },
+  "footer": {
+    "sectionsProducts": "Products",
+    "sectionsSupport": "Support",
+    "sectionsCompany": "Company",
+    "linksAccounts": "Accounts",
+    "linksCourses": "Courses",
+    "linksPopular": "Popular Items",
+    "linksContact": "Contact Us",
+    "linksTerms": "Terms of Service",
+    "linksPrivacy": "Privacy Policy",
+    "linksRefund": "Refund Policy",
+    "linksAbout": "About Us",
+    "linksFaq": "FAQ",
+    "rights": "All rights reserved."
+  },
+  "buttons": {
+    "viewAll": "View All",
+    "browseProducts": "Browse Products",
+    "viewProducts": "View Products",
+    "add": "Add",
+    "viewDetails": "View Details"
+  },
+  "status": {
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock"
+  }
+}

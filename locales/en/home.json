@@ -1,0 +1,64 @@
+{
+  "hero": {
+    "title": "Premium Digital Accounts",
+    "highlight": "Made Simple",
+    "description": "Access the world's best digital services at unbeatable prices. Instant delivery, lifetime support, and verified authenticity.",
+    "ctaAccounts": "Buy Accounts Now",
+    "ctaCourses": "Browse Courses",
+    "shopNow": "Shop Now",
+    "viewPromotions": "View Promotions",
+    "browseAccounts": "Browse Accounts",
+    "readyTitle": "Ready to Get Started?",
+    "readyDescription": "Join thousands of satisfied customers and start accessing premium digital services today"
+  },
+  "banners": {
+    "steamTitle": "Steam Accounts",
+    "steamSubtitle": "OFFLINE GAME PACK",
+    "steamTag": "BEST SELLER",
+    "premiumTitle": "Premium Services",
+    "premiumSubtitle": "UP TO 51% OFF",
+    "premiumTag": "HOT DEAL",
+    "officeTitle": "Microsoft Office",
+    "officeSubtitle": "EXCLUSIVE OFFER",
+    "officeTag": "PREMIUM"
+  },
+  "sideBanners": {
+    "vpnBadge": "🔥 PROMO",
+    "vpnTitle": "VPN",
+    "vpnSubtitle": "SECURE",
+    "aiBadge": "⚡ NEW",
+    "aiTitle": "AI Tools",
+    "aiSubtitle": "PREMIUM"
+  },
+  "features": {
+    "instantDeliveryTitle": "Instant Delivery",
+    "instantDeliveryDescription": "Get your accounts within minutes of purchase with our automated system",
+    "secureTitle": "Verified & Secure",
+    "secureDescription": "All accounts are verified and come with secure payment protection",
+    "supportTitle": "24/7 Support",
+    "supportDescription": "Our support team is always here to help you with any questions"
+  },
+  "sections": {
+    "popularTitle": "Hot Deals Today",
+    "popularDescription": "Our best-selling digital accounts trusted by thousands",
+    "popularViewAll": "View All Products",
+    "learningTitle": "Learning & Productivity",
+    "learningDescription": "Premium tools to boost your productivity and learning",
+    "learningViewMore": "View More",
+    "entertainmentTitle": "Entertainment & Streaming",
+    "entertainmentDescription": "Unlimited access to movies, music, and entertainment",
+    "entertainmentViewMore": "View More",
+    "toolsTitle": "Design & AI Tools",
+    "toolsDescription": "Professional design and AI tools for creators",
+    "toolsViewMore": "View More",
+    "coursesTitle": "Online Courses",
+    "coursesDescription": "Level up your skills with expert instructors",
+    "coursesViewAll": "View All Courses"
+  },
+  "tabs": {
+    "all": "All Products",
+    "learning": "Learning",
+    "streaming": "Streaming",
+    "tools": "Tools"
+  }
+}

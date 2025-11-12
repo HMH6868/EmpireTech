@@ -1,0 +1,9 @@
+{
+  "courseCard": {
+    "lessons": "lessons",
+    "enrollNow": "Enroll Now"
+  },
+  "productCard": {
+    "addToCart": "Add to cart"
+  }
+}

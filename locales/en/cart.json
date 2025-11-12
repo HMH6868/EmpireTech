@@ -1,0 +1,20 @@
+{
+  "empty": {
+    "title": "Your cart is empty",
+    "subtitle": "Add some products to get started",
+    "cta": "Browse Products"
+  },
+  "pageTitle": "Shopping Cart",
+  "itemsCount": {
+    "single": "item in your cart",
+    "plural": "items in your cart"
+  },
+  "summary": {
+    "title": "Order Summary",
+    "subtotal": "Subtotal",
+    "tax": "Tax (10%)",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continue": "Continue Shopping"
+  }
+}

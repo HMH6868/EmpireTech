@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useLanguage } from '@/hooks/use-language';
+import { useTranslations } from '@/hooks/useTranslations';
 import { Gift, LogIn, Menu, ShoppingCart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,23 +23,18 @@ export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const [cartCount] = useState(3); // Mock cart count
   const [isLoggedIn] = useState(false); // Mock auth state
-  const { language } = useLanguage();
+  const t = useTranslations('common');
   const pathname = usePathname();
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
   const navLinks = [
-    { href: '/', label: { en: 'Home', vi: 'Trang chủ' } },
-    { href: '/accounts', label: { en: 'Accounts', vi: 'Tài khoản' } },
-    { href: '/courses', label: { en: 'Courses', vi: 'Khóa học' } },
-    { href: '/promotions', label: { en: 'Promotions', vi: 'Khuyến mãi' } },
-    { href: '/policies', label: { en: 'Policies & Contact', vi: 'Chính sách & Liên hệ' } },
-  ];
-
-  const promoCopy = {
-    en: 'Special Offer: Get 20% off your first purchase! Use code WELCOME20',
-    vi: 'Ưu đãi: Giảm 20% cho đơn đầu tiên! Nhập mã WELCOME20',
-  };
+    { href: '/', labelKey: 'nav.home' },
+    { href: '/accounts', labelKey: 'nav.accounts' },
+    { href: '/courses', labelKey: 'nav.courses' },
+    { href: '/promotions', labelKey: 'nav.promotions' },
+    { href: '/policies', labelKey: 'nav.policies' },
+  ] as const;
 
   const activeIndex = useMemo(
     () => navLinks.findIndex((link) => pathname === link.href),
@@ -87,7 +82,7 @@ export function Header() {
       <div className="bg-primary/10 py-2 text-center">
         <Link href="/promotions" className="text-xs font-medium hover:underline">
           <Gift className="mr-1 inline-block h-4 w-4" />
-          {promoCopy[language]}
+          {t('promo.message')}
         </Link>
       </div>
 
@@ -119,7 +114,7 @@ export function Header() {
                     : "text-foreground/70 hover:text-foreground"
                 }`}
               >
-                {link.label[language]}
+                {t(link.labelKey)}
               </Link>
             ))}
           </nav>
@@ -153,24 +148,24 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/user/profile">
                       <User className="mr-2 h-4 w-4" />
-                      {language === 'vi' ? 'Hồ sơ' : 'Profile'}
+                      {t('auth.profile')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/user/orders">
                       <ShoppingCart className="mr-2 h-4 w-4" />
-                      {language === 'vi' ? 'Đơn hàng' : 'My Orders'}
+                      {t('auth.orders')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/user/courses">
                       <User className="mr-2 h-4 w-4" />
-                      {language === 'vi' ? 'Khoá học của tôi' : 'My Courses'}
+                      {t('auth.courses')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive">
-                    {language === 'vi' ? 'Đăng xuất' : 'Logout'}
+                    {t('auth.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -178,7 +173,7 @@ export function Header() {
               <Link href="/login" className="hidden sm:block">
                 <Button variant="default" size="sm" className="gap-2">
                   <LogIn className="h-4 w-4" />
-                  {language === 'vi' ? 'Đăng nhập' : 'Login'}
+                  {t('auth.login')}
                 </Button>
               </Link>
             )}
@@ -206,7 +201,7 @@ export function Header() {
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
-                      {link.label[language]}
+                      {t(link.labelKey)}
                     </Link>
                   ))}
                   <div className="mt-4 border-t pt-4">
@@ -214,7 +209,7 @@ export function Header() {
                       <Link href="/login" onClick={() => setIsOpen(false)}>
                         <Button className="w-full gap-2">
                           <LogIn className="h-4 w-4" />
-                          {language === 'vi' ? 'Đăng nhập' : 'Login'}
+                          {t('auth.login')}
                         </Button>
                       </Link>
                     )}

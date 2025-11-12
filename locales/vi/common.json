@@ -1,0 +1,53 @@
+{
+  "brand": "Empire Tech",
+  "tagline": "Nền tảng uy tín cho tài khoản số và khóa học trực tuyến cao cấp.",
+  "promo": {
+    "message": "Ưu đãi: Giảm 20% cho đơn đầu tiên! Nhập mã WELCOME20",
+    "link": "Xem khuyến mãi"
+  },
+  "seo": {
+    "title": "Empire Tech - Tài khoản số cao cấp & Khóa học",
+    "description": "Nền tảng uy tín cho tài khoản số và khóa học trực tuyến cao cấp"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "accounts": "Tài khoản",
+    "courses": "Khóa học",
+    "promotions": "Khuyến mãi",
+    "policies": "Chính sách & Liên hệ"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "profile": "Hồ sơ",
+    "orders": "Đơn hàng",
+    "courses": "Khoá học của tôi",
+    "logout": "Đăng xuất"
+  },
+  "footer": {
+    "sectionsProducts": "Sản phẩm",
+    "sectionsSupport": "Hỗ trợ",
+    "sectionsCompany": "Công ty",
+    "linksAccounts": "Tài khoản",
+    "linksCourses": "Khóa học",
+    "linksPopular": "Sản phẩm nổi bật",
+    "linksContact": "Liên hệ",
+    "linksTerms": "Điều khoản dịch vụ",
+    "linksPrivacy": "Chính sách bảo mật",
+    "linksRefund": "Chính sách hoàn tiền",
+    "linksAbout": "Về chúng tôi",
+    "linksFaq": "Câu hỏi thường gặp",
+    "rights": "Đã đăng ký bản quyền."
+  },
+  "buttons": {
+    "viewAll": "Xem tất cả",
+    "browseProducts": "Xem sản phẩm",
+    "viewProducts": "Xem sản phẩm",
+    "add": "Thêm",
+    "viewDetails": "Xem chi tiết"
+  },
+  "status": {
+    "inStock": "Còn hàng",
+    "lowStock": "Sắp hết",
+    "outOfStock": "Hết hàng"
+  }
+}

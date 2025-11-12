@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useLanguage } from "@/hooks/use-language"
+import { useLanguage } from "@/hooks/use-locale"
 import { cn } from "@/lib/utils"
 
 interface LanguageSwitcherProps {
@@ -16,7 +16,7 @@ const languages = [
 ]
 
 export function LanguageSwitcher({ variant = "pill", size = "md", className }: LanguageSwitcherProps) {
-  const { language, setLanguage } = useLanguage()
+  const { locale, switchLocale } = useLanguage()
 
   if (variant === "inline") {
     return (
@@ -25,10 +25,10 @@ export function LanguageSwitcher({ variant = "pill", size = "md", className }: L
           <button
             key={lang.code}
             type="button"
-            onClick={() => setLanguage(lang.code)}
+            onClick={() => switchLocale(lang.code)}
             className={cn(
               "text-xs font-semibold uppercase transition-colors",
-              language === lang.code ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              locale === lang.code ? "text-primary" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {lang.label}
@@ -51,13 +51,13 @@ export function LanguageSwitcher({ variant = "pill", size = "md", className }: L
         <Button
           key={lang.code}
           type="button"
-          variant={language === lang.code ? "default" : "ghost"}
+          variant={locale === lang.code ? "default" : "ghost"}
           size="sm"
           className={cn(
             "h-7 rounded-full px-3 uppercase",
-            language === lang.code ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground",
+            locale === lang.code ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground",
           )}
-          onClick={() => setLanguage(lang.code)}
+          onClick={() => switchLocale(lang.code)}
         >
           {lang.label}
         </Button>

@@ -1,19 +1,20 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { LOCALE_COOKIE, defaultLocale, i18nConfig, type Locale } from "@/i18nConfig"
+import { createContext, useContext, useMemo } from "react"
+import type React from "react"
+import { usePathname, useParams, useRouter, useSearchParams } from "next/navigation"
 
-export type Language = "en" | "vi"
 export type Currency = "usd" | "vnd"
 
 interface LanguageContextValue {
-  language: Language
-  setLanguage: (language: Language) => void
+  locale: Locale
+  switchLocale: (locale: Locale) => void
   currency: Currency
   formatCurrency: (value: number, options?: { currency?: Currency; maximumFractionDigits?: number }) => string
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
-const STORAGE_KEY = "empiretech-language"
 
 const formatters: Record<Currency, Intl.NumberFormat> = {
   usd: new Intl.NumberFormat("en-US", {
@@ -30,34 +31,49 @@ const formatters: Record<Currency, Intl.NumberFormat> = {
   }),
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en")
+const isLocale = (value: string | undefined): value is Locale =>
+  Boolean(value && i18nConfig.locales.includes(value as Locale))
 
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const persisted = window.localStorage.getItem(STORAGE_KEY) as Language | null
-    if (persisted === "en" || persisted === "vi") {
-      setLanguageState(persisted)
-      document.documentElement.lang = persisted
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const params = useParams<{ locale?: string }>()
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const locale: Locale = isLocale(params?.locale) ? (params.locale as Locale) : defaultLocale
+
+  const switchLocale = (nextLocale: Locale) => {
+    if (nextLocale === locale) {
       return
     }
 
-    const browserLang = window.navigator.language.toLowerCase()
-    if (browserLang.startsWith("vi")) {
-      setLanguageState("vi")
-      document.documentElement.lang = "vi"
-    }
-  }, [])
+    document.cookie = `${LOCALE_COOKIE}=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}`
+    document.documentElement.lang = nextLocale
 
-  const setLanguage = (nextLanguage: Language) => {
-    setLanguageState(nextLanguage)
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, nextLanguage)
-      document.documentElement.lang = nextLanguage
+    const currentPath = typeof window !== "undefined" && window.location?.pathname ? window.location.pathname : pathname
+
+    if (!currentPath) {
+      router.push(`/${nextLocale}`)
+      return
     }
+
+    const segments = currentPath.split("/").filter(Boolean)
+
+    if (segments.length === 0) {
+      router.push(`/${nextLocale}`)
+      return
+    }
+
+    segments[0] = nextLocale
+    const updatedPath = `/${segments.join("/")}`
+
+    const query = searchParams?.toString()
+    const nextPath = updatedPath || `/${nextLocale}`
+
+    router.push(query ? `${nextPath}?${query}` : nextPath)
   }
 
-  const currency: Currency = language === "vi" ? "vnd" : "usd"
+  const currency: Currency = locale === "vi" ? "vnd" : "usd"
 
   const formatCurrency = (value: number, options?: { currency?: Currency; maximumFractionDigits?: number }) => {
     const currencyToUse = options?.currency ?? currency
@@ -81,21 +97,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
-      language,
-      setLanguage,
+      locale,
+      switchLocale,
       currency,
       formatCurrency,
     }),
-    [language, currency],
+    [locale, currency],
   )
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }
 
-export function useLanguageContext() {
+export function useLanguage() {
   const context = useContext(LanguageContext)
   if (!context) {
-    throw new Error("useLanguageContext must be used within a LanguageProvider")
+    throw new Error("useLanguage must be used within a LanguageProvider")
   }
   return context
 }

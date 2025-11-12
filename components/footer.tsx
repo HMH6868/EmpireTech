@@ -3,27 +3,37 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react"
-import { useLanguage } from "@/hooks/use-language"
+import { useTranslations } from "@/hooks/useTranslations"
 
 export function Footer() {
-  const { language } = useLanguage();
-  const footerLinks = {
-    products: [
-      { label: { en: 'Accounts', vi: 'Tài khoản' }, href: '/accounts' },
-      { label: { en: 'Courses', vi: 'Khóa học' }, href: '/courses' },
-      { label: { en: 'Popular Items', vi: 'Sản phẩm nổi bật' }, href: '/#popular' },
-    ],
-    support: [
-      { label: { en: 'Contact Us', vi: 'Liên hệ' }, href: '/policies#contact' },
-      { label: { en: 'Terms of Service', vi: 'Điều khoản dịch vụ' }, href: '/policies#terms' },
-      { label: { en: 'Privacy Policy', vi: 'Chính sách bảo mật' }, href: '/policies#privacy' },
-      { label: { en: 'Refund Policy', vi: 'Chính sách hoàn tiền' }, href: '/policies#refund' },
-    ],
-    company: [
-      { label: { en: 'About Us', vi: 'Về chúng tôi' }, href: '/about' },
-      { label: { en: 'FAQ', vi: 'Câu hỏi thường gặp' }, href: '/faq' },
-    ],
-  };
+  const t = useTranslations("common")
+
+  const sections = [
+    {
+      title: t("footer.sectionsProducts"),
+      links: [
+        { href: "/accounts", label: t("footer.linksAccounts") },
+        { href: "/courses", label: t("footer.linksCourses") },
+        { href: "/#popular", label: t("footer.linksPopular") },
+      ],
+    },
+    {
+      title: t("footer.sectionsSupport"),
+      links: [
+        { href: "/policies#contact", label: t("footer.linksContact") },
+        { href: "/policies#terms", label: t("footer.linksTerms") },
+        { href: "/policies#privacy", label: t("footer.linksPrivacy") },
+        { href: "/policies#refund", label: t("footer.linksRefund") },
+      ],
+    },
+    {
+      title: t("footer.sectionsCompany"),
+      links: [
+        { href: "/about", label: t("footer.linksAbout") },
+        { href: "/faq", label: t("footer.linksFaq") },
+      ],
+    },
+  ] as const
 
   const socialLinks = [
     { icon: Facebook, href: '#', label: 'Facebook' },
@@ -42,13 +52,11 @@ export function Footer() {
               <div className="relative h-9 w-9">
                 <Image src="/logo.png" alt="Empire Tech logo" fill className="object-contain" priority />
               </div>
-              <span className="text-xl font-bold">Empire Tech</span>
-            </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {language === 'vi'
-                ? 'Nền tảng uy tín cho tài khoản số và khóa học trực tuyến cao cấp.'
-                : 'Your trusted platform for premium digital accounts and online courses.'}
-            </p>
+            <span className="text-xl font-bold">{t("brand")}</span>
+          </Link>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {t("tagline")}
+          </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <Link
@@ -63,62 +71,28 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Products */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">{language === 'vi' ? 'Sản phẩm' : 'Products'}</h3>
-            <ul className="space-y-2">
-              {footerLinks.products.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.label[language]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">{language === 'vi' ? 'Hỗ trợ' : 'Support'}</h3>
-            <ul className="space-y-2">
-              {footerLinks.support.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.label[language]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">{language === 'vi' ? 'Công ty' : 'Company'}</h3>
-            <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.label[language]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {sections.map((section) => (
+            <div key={section.title} className="space-y-4">
+              <h3 className="text-sm font-semibold">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="mt-12 border-t border-border/40 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Empire Tech.{' '}
-            {language === 'vi' ? 'Đã đăng ký bản quyền.' : 'All rights reserved.'}
+            © {new Date().getFullYear()} {t("brand")}. {t("footer.rights")}
           </p>
         </div>
       </div>

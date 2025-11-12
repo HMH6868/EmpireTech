@@ -1,0 +1,64 @@
+{
+  "hero": {
+    "title": "Tài khoản số cao cấp",
+    "highlight": "dễ dàng hơn bao giờ hết",
+    "description": "Tiếp cận những dịch vụ số tốt nhất với mức giá cạnh tranh. Giao hàng tức thì, bảo hành trọn đời và cam kết chính chủ.",
+    "ctaAccounts": "Mua tài khoản ngay",
+    "ctaCourses": "Xem khóa học",
+    "shopNow": "Mua ngay",
+    "viewPromotions": "Xem ưu đãi",
+    "browseAccounts": "Khám phá tài khoản",
+    "readyTitle": "Sẵn sàng bắt đầu chưa?",
+    "readyDescription": "Gia nhập cộng đồng khách hàng hài lòng và trải nghiệm dịch vụ số cao cấp ngay hôm nay"
+  },
+  "banners": {
+    "steamTitle": "TÀI KHOẢN STEAM",
+    "steamSubtitle": "GAME BOM TẤN",
+    "steamTag": "SIÊU TIẾT KIỆM",
+    "premiumTitle": "DỊCH VỤ CAO CẤP",
+    "premiumSubtitle": "GIẢM GIÁ ĐẾN 51%",
+    "premiumTag": "ƯU ĐÃI SỐC",
+    "officeTitle": "MICROSOFT OFFICE",
+    "officeSubtitle": "BẢN QUYỀN",
+    "officeTag": "CAO CẤP"
+  },
+  "sideBanners": {
+    "vpnBadge": "🔥 ƯU ĐÃI",
+    "vpnTitle": "VPN",
+    "vpnSubtitle": "BẢO MẬT",
+    "aiBadge": "⚡ MỚI",
+    "aiTitle": "AI Tools",
+    "aiSubtitle": "CHATGPT+"
+  },
+  "features": {
+    "instantDeliveryTitle": "Giao hàng ngay",
+    "instantDeliveryDescription": "Nhận tài khoản trong vài phút nhờ hệ thống tự động",
+    "secureTitle": "Chính chủ & an toàn",
+    "secureDescription": "Mọi tài khoản đều được xác thực và bảo vệ thanh toán",
+    "supportTitle": "Hỗ trợ 24/7",
+    "supportDescription": "Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc"
+  },
+  "sections": {
+    "popularTitle": "Sản phẩm nổi bật",
+    "popularDescription": "Hàng ngàn khách hàng đã tin chọn - Uy tín được đảm bảo",
+    "popularViewAll": "Xem tất cả",
+    "learningTitle": "Học tập & Năng suất",
+    "learningDescription": "Công cụ cao cấp giúp tăng năng suất học tập và làm việc",
+    "learningViewMore": "Xem thêm",
+    "entertainmentTitle": "Giải trí & Streaming",
+    "entertainmentDescription": "Truy cập không giới hạn phim ảnh, âm nhạc và giải trí",
+    "entertainmentViewMore": "Xem thêm",
+    "toolsTitle": "Công cụ thiết kế & AI",
+    "toolsDescription": "Công cụ thiết kế và AI chuyên nghiệp cho nhà sáng tạo",
+    "toolsViewMore": "Xem thêm",
+    "coursesTitle": "Khóa học trực tuyến",
+    "coursesDescription": "Nâng cấp kỹ năng với giảng viên chuyên nghiệp",
+    "coursesViewAll": "Xem tất cả khóa học"
+  },
+  "tabs": {
+    "all": "Tất cả",
+    "learning": "Học tập",
+    "streaming": "Giải trí",
+    "tools": "Công cụ"
+  }
+}

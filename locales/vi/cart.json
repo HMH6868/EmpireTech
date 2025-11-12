@@ -1,0 +1,20 @@
+{
+  "empty": {
+    "title": "Giỏ hàng của bạn đang trống",
+    "subtitle": "Hãy thêm sản phẩm để bắt đầu mua sắm",
+    "cta": "Xem sản phẩm"
+  },
+  "pageTitle": "Giỏ hàng",
+  "itemsCount": {
+    "single": "sản phẩm trong giỏ",
+    "plural": "sản phẩm trong giỏ"
+  },
+  "summary": {
+    "title": "Tổng đơn hàng",
+    "subtotal": "Tạm tính",
+    "tax": "Thuế (10%)",
+    "total": "Thành tiền",
+    "checkout": "Tiến hành thanh toán",
+    "continue": "Tiếp tục mua sắm"
+  }
+}
