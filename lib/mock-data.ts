@@ -113,19 +113,6 @@ export interface AdminUser {
   createdAt: string;
 }
 
-export interface Review {
-  id: string;
-  itemId: string;
-  itemName: LocalizedText;
-  itemType: 'product' | 'course';
-  userId: string;
-  userName: string;
-  rating: number;
-  comment: LocalizedText;
-  status: 'approved' | 'pending' | 'hidden';
-  createdAt: string;
-}
-
 export const categories: Category[] = [
   { id: 'all', name: localized('All', 'Tất cả') },
   { id: 'ai-tools', name: localized('AI Tools', 'Công cụ AI') },
@@ -610,53 +597,5 @@ export const adminUsers: AdminUser[] = [
     role: 'user',
     status: 'active',
     createdAt: '2024-01-22',
-  },
-];
-
-export const reviews: Review[] = [
-  {
-    id: 'r1',
-    itemId: 'chatgpt-plus',
-    itemName: localized('ChatGPT Plus Account', 'Tài khoản ChatGPT Plus'),
-    itemType: 'product',
-    userId: 'u2',
-    userName: 'Bao Tran',
-    rating: 5,
-    comment: localized(
-      'Account arrived instantly and the support team solved my question in 5 minutes.',
-      'Nhận tài khoản ngay lập tức và team hỗ trợ giải đáp trong 5 phút.'
-    ),
-    status: 'approved',
-    createdAt: '2024-02-05',
-  },
-  {
-    id: 'r2',
-    itemId: 'canva-pro',
-    itemName: localized('Canva Pro Lifetime', 'Canva Pro trọn đời'),
-    itemType: 'product',
-    userId: 'u3',
-    userName: 'Hannah Lee',
-    rating: 4,
-    comment: localized(
-      'Great value and all templates unlocked.',
-      'Giá tốt và mở khoá mọi template.'
-    ),
-    status: 'approved',
-    createdAt: '2024-02-04',
-  },
-  {
-    id: 'r3',
-    itemId: 'web-bootcamp',
-    itemName: localized('Full-Stack Web Bootcamp', 'Bootcamp lập trình Full-Stack'),
-    itemType: 'course',
-    userId: 'u1',
-    userName: 'Jane Smith',
-    rating: 5,
-    comment: localized(
-      'Projects are realistic and mentor feedback is detailed.',
-      'Dự án thực tế và mentor phản hồi rất chi tiết.'
-    ),
-    status: 'approved',
-    createdAt: '2024-02-01',
   },
 ];

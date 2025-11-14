@@ -24,7 +24,6 @@ const menuItems = [
   { icon: GraduationCap, label: "Courses", href: "/admin/courses" },
   { icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
   { icon: Users, label: "Users", href: "/admin/users" },
-  { icon: MessageSquare, label: "Reviews", href: "/admin/reviews" },
   { icon: MessageCircle, label: "Comments", href: "/admin/comments" },
   { icon: Tag, label: "Promotions", href: "/admin/promotions" },
 ]

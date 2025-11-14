@@ -42,12 +42,17 @@ const detectLocale = (request: NextRequest): Locale =>
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api') || PUBLIC_FILE.test(pathname)) {
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/admin') ||
+    PUBLIC_FILE.test(pathname)
+  ) {
     return NextResponse.next();
   }
 
   const hasLocalePrefix = i18nConfig.locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
   );
 
   if (hasLocalePrefix) {

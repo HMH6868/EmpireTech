@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/hooks/use-locale';
 import { useToast } from '@/hooks/use-toast';
-import { comments, courses, reviews } from '@/lib/mock-data';
+import { comments, courses } from '@/lib/mock-data';
 import {
   Award,
   BookOpen,
@@ -74,9 +74,7 @@ export default function CourseDetailPage() {
               {locale === 'vi' ? 'Không tìm thấy khóa học' : 'Course not found'}
             </h1>
             <Link href="/courses" className="mt-4 inline-block">
-              <Button>
-                {locale === 'vi' ? 'Quay lại danh sách khóa học' : 'Back to Courses'}
-              </Button>
+              <Button>{locale === 'vi' ? 'Quay lại danh sách khóa học' : 'Back to Courses'}</Button>
             </Link>
           </div>
         </main>
