@@ -1,0 +1,37 @@
+{
+  "users": {
+    "title": "Quản lý người dùng",
+    "subtitle": "Xem và quản lý tài khoản người dùng, vai trò và quyền hạn",
+    "allUsers": "Tất cả người dùng",
+    "table": {
+      "name": "Tên",
+      "avatar": "Ảnh",
+      "email": "Email",
+      "role": "Vai trò",
+      "status": "Trạng thái",
+      "created": "Ngày tạo",
+      "actions": "Hành động"
+    },
+    "actions": {
+      "userActions": "Các hành động người dùng",
+      "viewDetails": "Xem chi tiết",
+      "changeRole": "Thay đổi vai trò",
+      "makeAdmin": "Cấp quyền quản trị",
+      "makeUser": "Làm người dùng",
+      "banUser": "Cấm người dùng",
+      "unbanUser": "Gỡ cấm người dùng"
+    },
+    "dialog": {
+      "title": "Thông tin người dùng",
+      "description": "Chi tiết về người dùng được chọn"
+    },
+    "searchPlaceholder": "Tìm kiếm người dùng...",
+    "messages": {
+      "userUpdated": "Đã cập nhật người dùng",
+      "fetchError": "Không thể tải danh sách người dùng",
+      "updateError": "Không thể cập nhật người dùng",
+      "success": "Thành công",
+      "error": "Lỗi"
+    }
+  }
+}

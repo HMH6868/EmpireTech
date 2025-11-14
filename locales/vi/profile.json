@@ -1,0 +1,21 @@
+{
+  "title": "Thông tin cá nhân",
+  "pageTitle": "Hồ sơ của tôi",
+  "subtitle": "Quản lý cài đặt và tùy chọn tài khoản",
+  "labels": {
+    "fullName": "Họ và tên",
+    "email": "Địa chỉ email",
+    "avatar": "Ảnh đại diện",
+    "role": "Vai trò",
+    "status": "Trạng thái",
+    "memberSince": "Tham gia từ"
+  },
+  "roles": {
+    "user": "Khách hàng",
+    "admin": "Quản trị viên"
+  },
+  "statuses": {
+    "active": "Hoạt động",
+    "banned": "Bị cấm"
+  }
+}

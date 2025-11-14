@@ -1,20 +1,32 @@
 import { defaultLocale, type Locale } from '@/i18nConfig';
 
+import adminEn from '@/locales/en/admin.json';
+import authEn from '@/locales/en/auth.json';
+import cartEn from '@/locales/en/cart.json';
 import commonEn from '@/locales/en/common.json';
+import errorsEn from '@/locales/en/errors.json';
 import homeEn from '@/locales/en/home.json';
 import productsEn from '@/locales/en/products.json';
-import cartEn from '@/locales/en/cart.json';
-import authEn from '@/locales/en/auth.json';
-import errorsEn from '@/locales/en/errors.json';
+import profileEn from '@/locales/en/profile.json';
 
+import adminVi from '@/locales/vi/admin.json';
+import authVi from '@/locales/vi/auth.json';
+import cartVi from '@/locales/vi/cart.json';
 import commonVi from '@/locales/vi/common.json';
+import errorsVi from '@/locales/vi/errors.json';
 import homeVi from '@/locales/vi/home.json';
 import productsVi from '@/locales/vi/products.json';
-import cartVi from '@/locales/vi/cart.json';
-import authVi from '@/locales/vi/auth.json';
-import errorsVi from '@/locales/vi/errors.json';
+import profileVi from '@/locales/vi/profile.json';
 
-export type Namespace = 'common' | 'home' | 'products' | 'cart' | 'auth' | 'errors';
+export type Namespace =
+  | 'common'
+  | 'home'
+  | 'products'
+  | 'cart'
+  | 'auth'
+  | 'errors'
+  | 'profile'
+  | 'admin';
 
 type TranslationValue = string | TranslationTree;
 interface TranslationTree {
@@ -28,6 +40,8 @@ const translationStore: Record<Locale, Record<Namespace, TranslationTree>> = {
     products: productsEn,
     cart: cartEn,
     auth: authEn,
+    profile: profileEn,
+    admin: adminEn,
     errors: errorsEn,
   },
   vi: {
@@ -36,6 +50,8 @@ const translationStore: Record<Locale, Record<Namespace, TranslationTree>> = {
     products: productsVi,
     cart: cartVi,
     auth: authVi,
+    profile: profileVi,
+    admin: adminVi,
     errors: errorsVi,
   },
 };

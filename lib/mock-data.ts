@@ -108,6 +108,7 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  avatar?: string | null;
   role: 'admin' | 'user';
   status: 'active' | 'banned';
   createdAt: string;

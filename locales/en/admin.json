@@ -1,0 +1,37 @@
+{
+  "users": {
+    "title": "Manage Users",
+    "subtitle": "View and manage user accounts, roles, and permissions",
+    "allUsers": "All Users",
+    "table": {
+      "name": "Name",
+      "avatar": "Avatar",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "actions": {
+      "userActions": "User Actions",
+      "viewDetails": "View Details",
+      "changeRole": "Change Role",
+      "makeAdmin": "Make Admin",
+      "makeUser": "Make User",
+      "banUser": "Ban User",
+      "unbanUser": "Unban User"
+    },
+    "dialog": {
+      "title": "User Details",
+      "description": "Detailed information about the selected user"
+    },
+    "searchPlaceholder": "Search users...",
+    "messages": {
+      "userUpdated": "User updated",
+      "fetchError": "Unable to fetch users",
+      "updateError": "Unable to update user",
+      "success": "Success",
+      "error": "Error"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Profile Information",
+  "pageTitle": "My Profile",
+  "subtitle": "Manage your account settings and preferences",
+  "labels": {
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "avatar": "Avatar",
+    "updatePassword": "Update Password",
+    "role": "Role",
+    "status": "Status",
+    "memberSince": "Member since"
+  },
+  "roles": {
+    "user": "User",
+    "admin": "Admin"
+  },
+  "statuses": {
+    "active": "Active",
+    "banned": "Banned"
+  }
+}

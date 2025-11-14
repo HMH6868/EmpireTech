@@ -1,6 +1,7 @@
 'use client';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,22 +15,31 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
 import { i18nConfig } from '@/i18nConfig';
-import { Gift, LogIn, Menu, ShoppingCart, User } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { Gift, LogIn, LogOut, Menu, ShoppingCart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+type UserProfile = {
+  full_name: string | null;
+  avatar: string | null;
+};
+
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [cartCount] = useState(3);
-  const [isLoggedIn] = useState(false);
+  const [sessionUser, setSessionUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const t = useTranslations('common');
   const { locale } = useLanguage();
   const pathname = usePathname();
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const navLinks = [
     { href: '/', labelKey: 'nav.home' },
@@ -65,6 +75,88 @@ export function Header() {
       ),
     [normalizedPathname]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (isMounted) {
+        setSessionUser(data.session?.user ?? null);
+      }
+    };
+
+    syncSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionUser(session?.user ?? null);
+      if (!session) {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      listener?.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!sessionUser?.id) {
+      setProfile(null);
+      return;
+    }
+
+    let isActive = true;
+
+    const loadProfile = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, avatar')
+        .eq('id', sessionUser.id)
+        .single();
+
+      if (error) {
+        console.error('[header] profile fetch error', error);
+        return;
+      }
+
+      if (isActive) {
+        setProfile(data ?? null);
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [sessionUser?.id, supabase]);
+
+  const metadata = sessionUser?.user_metadata as
+    | Record<string, string | null | undefined>
+    | undefined;
+  const metadataName =
+    metadata?.full_name ??
+    metadata?.name ??
+    metadata?.user_name ??
+    metadata?.preferred_username ??
+    null;
+  const metadataAvatar = metadata?.avatar_url ?? metadata?.picture ?? null;
+  const displayName = profile?.full_name ?? metadataName ?? sessionUser?.email ?? 'User';
+  const avatarUrl = profile?.avatar ?? metadataAvatar ?? null;
+  const initials = displayName?.charAt(0)?.toUpperCase() ?? 'U';
+  const isLoggedIn = Boolean(sessionUser);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setProfile(null);
+      setSessionUser(null);
+    } catch (error) {
+      console.error('[header] logout error', error);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,7 +197,10 @@ export function Header() {
       }`}
     >
       <div className="bg-primary/10 py-2 text-center">
-        <Link href={getLocalizedHref('/promotions')} className="text-xs font-medium hover:underline">
+        <Link
+          href={getLocalizedHref('/promotions')}
+          className="text-xs font-medium hover:underline"
+        >
           <Gift className="mr-1 inline-block h-4 w-4" />
           {t('promo.message')}
         </Link>
@@ -172,11 +267,22 @@ export function Header() {
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
+                  <Button variant="outline" className="gap-3 rounded-full pl-2 pr-4">
+                    <Avatar className="h-6 w-6">
+                      {avatarUrl ? (
+                        <AvatarImage src={avatarUrl} alt={displayName ?? 'User avatar'} />
+                      ) : (
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex items-center text-left">
+                      <span className="max-w-[140px] truncate text-sm font-medium leading-tight">
+                        {displayName}
+                      </span>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem asChild>
                     <Link href={getLocalizedHref('/user/profile')}>
                       <User className="mr-2 h-4 w-4" />
@@ -196,7 +302,15 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem
+                  
+                    className="text-destructive"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      void handleLogout();
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
                     {t('auth.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Facebook, Github, LogIn, Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslations } from "@/hooks/useTranslations"
+import { useLanguage } from "@/hooks/use-language"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...props}>
@@ -40,24 +42,78 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const t = useTranslations("auth")
+  const { locale } = useLanguage()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Mock login
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Unable to sign in")
+      }
+
       toast({
         title: t("login.toastTitle"),
         description: t("login.toastDescription"),
       })
+      router.push(`/${locale}`)
+      router.refresh()
+    } catch (error) {
+      const description = error instanceof Error ? error.message : t("errors.description")
+      toast({
+        title: t("errors.title"),
+        description,
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-      router.push("/")
-    }, 1000)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    if (isGoogleLoading || isLoading) {
+      return
+    }
+
+    try {
+      setIsGoogleLoading(true)
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/${locale}` : undefined
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      const description = error instanceof Error ? error.message : t("errors.description")
+      toast({
+        title: t("errors.title"),
+        description,
+        variant: "destructive",
+      })
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
@@ -91,7 +147,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">{t("fields.passwordLabel")}</Label>
-                      <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                      <Link href={`/${locale}/forgot-password`} className="text-sm text-primary hover:underline">
                         {t("login.forgotPassword")}
                       </Link>
                     </div>
@@ -124,34 +180,25 @@ export default function LoginPage() {
                   <p className="text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {t("social.title")}
                   </p>
-                  <div className="flex items-center gap-3">
-                    {[
-                      {
-                        id: "facebook",
-                        label: t("social.facebook"),
-                        icon: Facebook,
-                        accent: "text-[#1877F2]",
-                      },
-                      { id: "google", label: t("social.google"), icon: GoogleIcon, accent: "" },
-                      { id: "github", label: t("social.github"), icon: Github, accent: "" },
-                    ].map(({ id, label, icon: Icon, accent }) => (
-                      <Button
-                        key={id}
-                        type="button"
-                        variant="outline"
-                        className="flex-1 aspect-square justify-center p-0"
-                        aria-label={label}
-                      >
-                        <Icon className={`h-5 w-5 ${accent}`} />
-                        <span className="sr-only">{label}</span>
-                      </Button>
-                    ))}
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-center gap-2"
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading || isGoogleLoading}
+                  >
+                    {isGoogleLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <GoogleIcon className="h-5 w-5" />
+                    )}
+                    {t("social.google")}
+                  </Button>
                 </div>
 
                 <div className="mt-6 text-center text-sm">
                   <span className="text-muted-foreground">{t("login.noAccount")} </span>
-                  <Link href="/register" className="font-medium text-primary hover:underline">
+                  <Link href={`/${locale}/register`} className="font-medium text-primary hover:underline">
                     {t("login.signupCta")}
                   </Link>
                 </div>
