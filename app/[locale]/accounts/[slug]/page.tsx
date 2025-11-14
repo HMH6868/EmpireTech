@@ -2,10 +2,10 @@
 
 import type React from 'react';
 
+import { ProductCard } from '@/components/account-card';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { ProductCard } from '@/components/product-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

@@ -1,28 +1,33 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { ProductCard } from "@/components/product-card"
-import { products, categories } from "@/lib/mock-data"
-import { Button } from "@/components/ui/button"
-import { useLanguage } from "@/hooks/use-locale"
+import { ProductCard } from '@/components/account-card';
+import { Footer } from '@/components/footer';
+import { Header } from '@/components/header';
+import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/use-locale';
+import { categories, products } from '@/lib/mock-data';
+import { useState } from 'react';
 
 export default function AccountsPage() {
-  const { locale } = useLanguage()
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const { locale } = useLanguage();
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredProducts =
-    selectedCategory === "all" ? products : products.filter((product) => product.categoryId === selectedCategory)
+    selectedCategory === 'all'
+      ? products
+      : products.filter((product) => product.categoryId === selectedCategory);
 
   const copy = {
-    title: { en: "Premium Digital Accounts", vi: "Tài khoản Premium" },
+    title: { en: 'Premium Digital Accounts', vi: 'Tài khoản Premium' },
     description: {
-      en: "Browse our collection of verified premium accounts with instant delivery",
-      vi: "Kho tài khoản uy tín, giao ngay trong vài phút",
+      en: 'Browse our collection of verified premium accounts with instant delivery',
+      vi: 'Kho tài khoản uy tín, giao ngay trong vài phút',
     },
-    empty: { en: "No products found in this category.", vi: "Không có sản phẩm trong danh mục này." },
-  }
+    empty: {
+      en: 'No products found in this category.',
+      vi: 'Không có sản phẩm trong danh mục này.',
+    },
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -32,8 +37,12 @@ export default function AccountsPage() {
         {/* Page Header */}
         <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">{copy.title[locale]}</h1>
-            <p className="mt-1 text-pretty text-base text-muted-foreground">{copy.description[locale]}</p>
+            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">
+              {copy.title[locale]}
+            </h1>
+            <p className="mt-1 text-pretty text-base text-muted-foreground">
+              {copy.description[locale]}
+            </p>
           </div>
         </section>
 
@@ -45,7 +54,7 @@ export default function AccountsPage() {
               {categories.map((category) => (
                 <Button
                   key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  variant={selectedCategory === category.id ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedCategory(category.id)}
                   className="transition-all"
@@ -74,5 +83,5 @@ export default function AccountsPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

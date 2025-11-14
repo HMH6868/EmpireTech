@@ -20,7 +20,7 @@ import { useState } from "react"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
-  { icon: Package, label: "Products", href: "/admin/products" },
+  { icon: Package, label: "Account", href: "/admin/accounts" },
   { icon: GraduationCap, label: "Courses", href: "/admin/courses" },
   { icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
   { icon: Users, label: "Users", href: "/admin/users" },

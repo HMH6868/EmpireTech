@@ -1,9 +1,9 @@
 'use client';
 
+import { ProductCard } from '@/components/account-card';
 import { CourseCard } from '@/components/course-card';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
-import { ProductCard } from '@/components/product-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
