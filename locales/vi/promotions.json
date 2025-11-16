@@ -1,0 +1,27 @@
+{
+  "title": "Ưu đãi và khuyến mãi đặc biệt",
+  "description": "Tiết kiệm lớn với mã giảm giá độc quyền và ưu đãi có thời hạn",
+  "activeTitle": "Khuyến mãi đang diễn ra",
+  "noActive": "Hiện chưa có khuyến mãi nào. Vui lòng quay lại sau!",
+  "promoCodeLabel": "MÃ KHUYẾN MÃI",
+  "validLabel": "Hiệu lực",
+  "usageLabel": "Lượt sử dụng",
+  "maxDiscountLabel": "Giảm tối đa",
+  "minOrderLabel": "Đơn tối thiểu",
+  "copyButton": "Sao chép mã & mua sắm",
+  "toastCopied": "Mã \"{code}\" đã được sao chép vào clipboard.",
+  "upcomingTitle": "Sắp diễn ra",
+  "upcomingSubtitle": "Đừng bỏ lỡ những ưu đãi sắp tới",
+  "upcomingBadge": "Sắp diễn ra",
+  "startsOn": "Bắt đầu từ",
+  "loading": "Đang tải...",
+  "howToTitle": "Cách sử dụng mã khuyến mãi",
+  "steps": {
+    "copyTitle": "Sao chép mã",
+    "copyDescription": "Nhấn vào mã để sao chép nhanh vào clipboard",
+    "addTitle": "Thêm vào giỏ",
+    "addDescription": "Chọn sản phẩm yêu thích và thêm vào giỏ hàng",
+    "applyTitle": "Áp dụng & tiết kiệm",
+    "applyDescription": "Nhập mã tại bước thanh toán để nhận ưu đãi"
+  }
+}

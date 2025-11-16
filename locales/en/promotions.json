@@ -1,0 +1,27 @@
+{
+  "title": "Special Promotions & Offers",
+  "description": "Save big with our exclusive discount codes and limited-time deals",
+  "activeTitle": "Active Promotions",
+  "noActive": "No active promotions at the moment. Check back soon!",
+  "promoCodeLabel": "PROMO CODE",
+  "validLabel": "Valid",
+  "usageLabel": "Usage",
+  "maxDiscountLabel": "Max discount",
+  "minOrderLabel": "Min order",
+  "copyButton": "Copy Code & Shop Now",
+  "toastCopied": "Promo code \"{code}\" has been copied to clipboard.",
+  "upcomingTitle": "Coming Soon",
+  "upcomingSubtitle": "Mark your calendar for these upcoming deals",
+  "upcomingBadge": "Upcoming",
+  "startsOn": "Starts on",
+  "loading": "Loading...",
+  "howToTitle": "How to Use Promo Codes",
+  "steps": {
+    "copyTitle": "Copy Code",
+    "copyDescription": "Click on the promo code to copy it to your clipboard",
+    "addTitle": "Add to Cart",
+    "addDescription": "Browse products and add items to your shopping cart",
+    "applyTitle": "Apply & Save",
+    "applyDescription": "Paste the code at checkout and enjoy your discount"
+  }
+}

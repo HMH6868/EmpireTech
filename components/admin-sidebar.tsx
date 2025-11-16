@@ -25,7 +25,7 @@ const menuItems = [
   { icon: ShoppingCart, label: "Đơn Hàng", href: "/admin/orders" },
   { icon: Users, label: "Users", href: "/admin/users" },
   { icon: MessageCircle, label: "Comments", href: "/admin/comments" },
-  { icon: Tag, label: "Promotions", href: "/admin/promotions" },
+  { icon: Tag, label: "Khuyến Mãi", href: "/admin/promotions" },
 ]
 
 export function AdminSidebar() {

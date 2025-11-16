@@ -100,6 +100,8 @@ CREATE TABLE IF NOT EXISTS promotions (
   description_en TEXT,
   description_vi TEXT,
   discount_percent INTEGER NOT NULL CHECK (discount_percent >= 0 AND discount_percent <= 100),
+  max_discount_amount INTEGER CHECK (max_discount_amount >= 0),
+  minimum_order_amount INTEGER CHECK (minimum_order_amount >= 0),
   start_date TIMESTAMPTZ NOT NULL,
   end_date TIMESTAMPTZ NOT NULL,
   status TEXT CHECK (status IN ('active', 'expired', 'scheduled')) DEFAULT 'scheduled',

@@ -8,6 +8,7 @@ import errorsEn from '@/locales/en/errors.json';
 import homeEn from '@/locales/en/home.json';
 import productsEn from '@/locales/en/products.json';
 import profileEn from '@/locales/en/profile.json';
+import promotionsEn from '@/locales/en/promotions.json';
 
 import adminVi from '@/locales/vi/admin.json';
 import authVi from '@/locales/vi/auth.json';
@@ -17,6 +18,7 @@ import errorsVi from '@/locales/vi/errors.json';
 import homeVi from '@/locales/vi/home.json';
 import productsVi from '@/locales/vi/products.json';
 import profileVi from '@/locales/vi/profile.json';
+import promotionsVi from '@/locales/vi/promotions.json';
 
 export type Namespace =
   | 'common'
@@ -26,7 +28,8 @@ export type Namespace =
   | 'auth'
   | 'errors'
   | 'profile'
-  | 'admin';
+  | 'admin'
+  | 'promotions';
 
 type TranslationValue = string | TranslationTree;
 interface TranslationTree {
@@ -43,6 +46,7 @@ const translationStore: Record<Locale, Record<Namespace, TranslationTree>> = {
     profile: profileEn,
     admin: adminEn,
     errors: errorsEn,
+    promotions: promotionsEn,
   },
   vi: {
     common: commonVi,
@@ -53,6 +57,7 @@ const translationStore: Record<Locale, Record<Namespace, TranslationTree>> = {
     profile: profileVi,
     admin: adminVi,
     errors: errorsVi,
+    promotions: promotionsVi,
   },
 };
 
