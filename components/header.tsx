@@ -17,7 +17,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 import { i18nConfig } from '@/i18nConfig';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { Gift, LogIn, LogOut, Menu, ShoppingCart, User } from 'lucide-react';
+import { Gift, LogIn, LogOut, Menu, Settings, ShoppingCart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -34,6 +34,7 @@ export function Header() {
   const [cartCount] = useState(3);
   const [sessionUser, setSessionUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const t = useTranslations('common');
   const { locale } = useLanguage();
   const pathname = usePathname();
@@ -104,6 +105,7 @@ export function Header() {
   useEffect(() => {
     if (!sessionUser?.id) {
       setProfile(null);
+      setIsAdmin(false);
       return;
     }
 
@@ -112,7 +114,7 @@ export function Header() {
     const loadProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, avatar')
+        .select('full_name, avatar, role')
         .eq('id', sessionUser.id)
         .single();
 
@@ -123,6 +125,7 @@ export function Header() {
 
       if (isActive) {
         setProfile(data ?? null);
+        setIsAdmin(data?.role === 'admin');
       }
     };
 
@@ -301,9 +304,19 @@ export function Header() {
                       {t('auth.courses')}
                     </Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                          <Settings className="mr-2 h-4 w-4" />
+                          {locale === 'vi' ? 'Quản trị' : 'Admin Dashboard'}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                  
                     className="text-destructive"
                     onSelect={(event) => {
                       event.preventDefault();

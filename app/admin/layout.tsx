@@ -1,3 +1,4 @@
+import { AdminHeader } from '@/components/admin-header';
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { LanguageProvider } from '@/components/language-provider';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -32,7 +33,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <LanguageProvider>
         <div className="flex min-h-screen">
           <AdminSidebar />
-          <main className="flex-1 md:pl-64">{children}</main>
+          <div className="flex-1 md:pl-64">
+            <AdminHeader />
+            <main>{children}</main>
+          </div>
         </div>
       </LanguageProvider>
     </Suspense>
