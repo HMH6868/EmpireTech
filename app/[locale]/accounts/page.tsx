@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-locale';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 type Account = {
@@ -37,6 +38,7 @@ type Category = {
 
 export default function AccountsPage() {
   const { locale } = useLanguage();
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,6 +47,16 @@ export default function AccountsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const categorySlug = searchParams.get('category');
+    if (categorySlug && categories.length > 0) {
+      const category = categories.find((cat) => cat.slug === categorySlug);
+      if (category) {
+        setSelectedCategory(category.id);
+      }
+    }
+  }, [searchParams, categories]);
 
   const fetchData = async () => {
     try {
