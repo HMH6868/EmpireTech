@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Edit, Plus, Search, Trash2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -88,6 +88,7 @@ export default function AdminAccountsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [variants, setVariants] = useState<Account['variants']>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // State để lưu dữ liệu form
   const [formData, setFormData] = useState({
@@ -130,6 +131,16 @@ export default function AdminAccountsPage() {
       setLoading(false);
     }
   };
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredAccounts = accounts.filter((account) => {
+    if (!normalizedQuery) return true;
+    const nameMatches =
+      account.name_en.toLowerCase().includes(normalizedQuery) ||
+      account.name_vi.toLowerCase().includes(normalizedQuery);
+    const categoryMatches = account.category?.name_vi.toLowerCase().includes(normalizedQuery);
+    return nameMatches || categoryMatches;
+  });
 
   const fetchCategories = async () => {
     try {
@@ -803,7 +814,18 @@ export default function AdminAccountsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tất cả sản phẩm ({accounts.length})</CardTitle>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Tất cả sản phẩm ({filteredAccounts.length})</CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm kiếm sản phẩm..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -828,7 +850,7 @@ export default function AdminAccountsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {accounts.map((account) => (
+                  {filteredAccounts.map((account) => (
                     <tr key={account.id} className="border-b border-border last:border-0">
                       <td className="py-3">
                         <div className="flex items-center gap-3">

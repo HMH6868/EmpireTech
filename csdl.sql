@@ -1,12 +1,3 @@
-
--- =====================================================
--- EMPIRETECH FULL SCHEMA (MODIFIED)
--- - accounts: removed price_usd, price_vnd
--- - prices are taken from account_variants (min price + realtime)
--- - cart views & functions use realtime variant/course price
--- - each account is expected to have at least one variant (enforced by app logic)
--- =====================================================
-
 -- =====================================================
 -- TABLE DEFINITIONS
 -- =====================================================
@@ -87,10 +78,6 @@ CREATE TABLE IF NOT EXISTS courses (
   price_vnd INTEGER NOT NULL,
   description_en TEXT,
   description_vi TEXT,
-  lessons INTEGER DEFAULT 0,
-  duration_en TEXT,
-  duration_vi TEXT,
-  status TEXT CHECK (status IN ('Published', 'Draft')) DEFAULT 'Draft',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -646,13 +633,10 @@ CREATE POLICY "Admin can manage account variants"
   USING (is_admin());
 
 -- COURSES POLICIES
-CREATE POLICY "Public can read published courses"
+CREATE POLICY "Public can read courses"
   ON courses FOR SELECT
-  TO public USING (status = 'Published');
-
-CREATE POLICY "Admin can view all courses"
-  ON courses FOR SELECT
-  USING (is_admin());
+  TO public
+  USING (true);
 
 CREATE POLICY "Admin can manage courses"
   ON courses FOR ALL

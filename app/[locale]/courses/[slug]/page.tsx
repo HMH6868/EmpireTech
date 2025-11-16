@@ -1,7 +1,5 @@
 'use client';
 
-import type React from 'react';
-
 import { CourseCard } from '@/components/course-card';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
@@ -17,52 +15,105 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/hooks/use-locale';
-import { useToast } from '@/hooks/use-toast';
-import { comments, courses } from '@/lib/mock-data';
 import {
   Award,
   BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
-  Clock,
   MessageCircle,
   Play,
   ShoppingCart,
-  Star,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+type Course = {
+  id: string;
+  slug: string;
+  title_en: string;
+  title_vi: string;
+  thumbnail?: string;
+  instructor: string;
+  price_usd: number;
+  price_vnd: number;
+  description_en?: string;
+  description_vi?: string;
+  created_at?: string;
+  images?: Array<{
+    id: string;
+    image_url: string;
+    order_index: number;
+  }>;
+};
+
+type Comment = {
+  id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  user?: {
+    full_name: string;
+  };
+};
 
 export default function CourseDetailPage() {
   const params = useParams();
-  const { toast } = useToast();
   const { locale, currency, formatCurrency } = useLanguage();
-  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [course, setCourse] = useState<Course | null>(null);
+  const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
+  const [comments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
-  const course = courses.find((c) => c.slug === params.slug);
-  const courseReviews = reviews.filter(
-    (r) => r.itemId === course?.id && r.itemType === 'course' && r.status === 'approved'
-  );
+  useEffect(() => {
+    fetchCourse();
+  }, [params.slug]);
 
-  const courseComments = comments.filter(
-    (c) => c.itemId === course?.id && c.itemType === 'course' && c.status === 'approved'
-  );
+  const fetchCourse = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/courses');
+      const data = await response.json();
 
-  const relatedCourses = courses.filter((c) => c.slug !== course?.slug).slice(0, 4);
+      if (data.courses) {
+        const foundCourse = data.courses.find((c: Course) => c.slug === params.slug);
+        setCourse(foundCourse || null);
 
-  const averageRating =
-    courseReviews.length > 0
-      ? (courseReviews.reduce((sum, r) => sum + r.rating, 0) / courseReviews.length).toFixed(1)
-      : '0.0';
+        if (foundCourse) {
+          const related = data.courses
+            .filter((c: Course) => c.slug !== foundCourse.slug)
+            .slice(0, 4);
+          setRelatedCourses(related);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      toast.error('Không thể tải khóa học');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground">{locale === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -73,7 +124,7 @@ export default function CourseDetailPage() {
             <h1 className="text-2xl font-bold">
               {locale === 'vi' ? 'Không tìm thấy khóa học' : 'Course not found'}
             </h1>
-            <Link href="/courses" className="mt-4 inline-block">
+            <Link href={`/${locale}/courses`} className="mt-4 inline-block">
               <Button>{locale === 'vi' ? 'Quay lại danh sách khóa học' : 'Back to Courses'}</Button>
             </Link>
           </div>
@@ -83,40 +134,32 @@ export default function CourseDetailPage() {
     );
   }
 
-  const courseDescription = course?.description[locale] ?? '';
-  const galleryImages = course.images || [course.thumbnail];
+  const courseTitle = locale === 'vi' ? course.title_vi : course.title_en;
+  const courseDescription = locale === 'vi' ? course.description_vi : course.description_en;
+  const price = currency === 'vnd' ? course.price_vnd : course.price_usd;
+
+  const galleryImages =
+    course.images && course.images.length > 0
+      ? course.images.sort((a, b) => a.order_index - b.order_index).map((img) => img.image_url)
+      : course.thumbnail
+      ? [course.thumbnail]
+      : ['/placeholder.svg'];
 
   const handleEnroll = () => {
-    toast({
-      title: locale === 'vi' ? 'Đăng ký thành công!' : 'Enrollment successful!',
-      description:
-        locale === 'vi'
-          ? `Bạn đã đăng ký khóa ${course.title[locale]}`
-          : `You've been enrolled in ${course.title[locale]}`,
-    });
-  };
-
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: locale === 'vi' ? 'Đã gửi đánh giá!' : 'Review submitted!',
-      description:
-        locale === 'vi'
-          ? 'Đánh giá của bạn đã được gửi và đang chờ duyệt.'
-          : 'Your review has been submitted and is pending approval.',
-    });
-    setNewReview({ rating: 5, comment: '' });
+    toast.success(
+      locale === 'vi'
+        ? `${courseTitle} đã được thêm vào giỏ hàng.`
+        : `${courseTitle} has been added to your cart.`
+    );
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: locale === 'vi' ? 'Đã gửi bình luận!' : 'Comment posted!',
-      description:
-        locale === 'vi'
-          ? 'Bình luận của bạn đã được gửi và đang chờ duyệt.'
-          : 'Your comment has been submitted and is pending approval.',
-    });
+    toast.success(
+      locale === 'vi'
+        ? 'Bình luận của bạn đã được gửi và đang chờ duyệt.'
+        : 'Your comment has been submitted and is pending approval.'
+    );
     setNewComment('');
   };
 
@@ -133,7 +176,6 @@ export default function CourseDetailPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Course Details */}
         <section className="py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -141,8 +183,8 @@ export default function CourseDetailPage() {
               <div className="space-y-4">
                 <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
                   <Image
-                    src={course.thumbnail || '/placeholder.svg'}
-                    alt={course.title[locale]}
+                    src={galleryImages[currentImageIndex] || '/placeholder.svg'}
+                    alt={courseTitle}
                     fill
                     className="object-cover"
                   />
@@ -160,7 +202,7 @@ export default function CourseDetailPage() {
                         >
                           <Image
                             src={img || '/placeholder.svg'}
-                            alt={`${course.title[locale]} ${idx + 1}`}
+                            alt={`${courseTitle} ${idx + 1}`}
                             fill
                             className="object-cover"
                           />
@@ -178,8 +220,7 @@ export default function CourseDetailPage() {
                           <DialogContent className="max-w-4xl">
                             <DialogHeader>
                               <DialogTitle>
-                                {course.title[locale]} -{' '}
-                                {locale === 'vi' ? 'Bộ sưu tập' : 'Gallery'}
+                                {courseTitle} - {locale === 'vi' ? 'Bộ sưu tập' : 'Gallery'}
                               </DialogTitle>
                               <DialogDescription>
                                 {locale === 'vi'
@@ -191,7 +232,7 @@ export default function CourseDetailPage() {
                               <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
                                 <Image
                                   src={galleryImages[currentImageIndex] || '/placeholder.svg'}
-                                  alt={`${course.title[locale]} ${currentImageIndex + 1}`}
+                                  alt={`${courseTitle} ${currentImageIndex + 1}`}
                                   fill
                                   className="object-contain"
                                 />
@@ -226,7 +267,7 @@ export default function CourseDetailPage() {
                                 >
                                   <Image
                                     src={img || '/placeholder.svg'}
-                                    alt={`${course.title[locale]} ${idx + 1}`}
+                                    alt={`${courseTitle} ${idx + 1}`}
                                     fill
                                     className="object-cover"
                                   />
@@ -246,39 +287,28 @@ export default function CourseDetailPage() {
                 <div>
                   <Badge variant="secondary" className="mb-3">
                     <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                    {locale === 'vi' ? 'Khoá học trực tuyến' : 'Online Course'}
+                    {locale === 'vi' ? 'Khóa học trực tuyến' : 'Online Course'}
                   </Badge>
                   <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-                    {course.title[locale]}
+                    {courseTitle}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {locale === 'vi' ? 'Giảng viên' : 'Instructor'}: {course.instructor}
                   </p>
-                  {course.createdAt && (
+                  {course.created_at && (
                     <p className="mt-1 text-sm text-muted-foreground">
                       {locale === 'vi' ? 'Ngày tạo' : 'Created'}:{' '}
-                      {new Date(course.createdAt).toLocaleDateString(
+                      {new Date(course.created_at).toLocaleDateString(
                         locale === 'vi' ? 'vi-VN' : 'en-US',
                         { year: 'numeric', month: 'long', day: 'numeric' }
                       )}
                     </p>
                   )}
-                  <div className="mt-4 flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-5 w-5 fill-primary text-primary" />
-                      <span className="text-lg font-semibold">{averageRating}</span>
-                    </div>
-                    <span className="text-muted-foreground">
-                      ({courseReviews.length} {locale === 'vi' ? 'đánh giá' : 'reviews'})
-                    </span>
-                  </div>
                 </div>
 
                 <div className="mt-8 space-y-4">
                   <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-bold">
-                      {formatCurrency(course.price[currency], { currency })}
-                    </p>
+                    <p className="text-4xl font-bold">{formatCurrency(price, { currency })}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -302,23 +332,10 @@ export default function CourseDetailPage() {
                           </div>
                           <div>
                             <p className="text-sm font-medium">
-                              {locale === 'vi' ? 'Bài học' : 'Lessons'}
+                              {locale === 'vi' ? 'Nội dung' : 'Content'}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {course.lessons} {locale === 'vi' ? 'bài học' : 'lessons'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                            <Clock className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {locale === 'vi' ? 'Thời lượng' : 'Duration'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {course.duration[locale]}
+                              {locale === 'vi' ? 'Video bài giảng' : 'Video lectures'}
                             </p>
                           </div>
                         </div>
@@ -354,197 +371,76 @@ export default function CourseDetailPage() {
             </div>
 
             <div className="mt-12 space-y-8">
+              {/* Description */}
+              {courseDescription && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{locale === 'vi' ? 'Mô tả chi tiết' : 'Course Details'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <MarkdownRenderer content={courseDescription} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Comments Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{locale === 'vi' ? 'Mô tả chi tiết' : 'Course Details'}</CardTitle>
+                  <CardTitle>
+                    {locale === 'vi' ? 'Câu hỏi & bình luận' : 'Questions & Comments'} (
+                    {comments.length})
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <MarkdownRenderer content={courseDescription} />
-                </CardContent>
-              </Card>
+                <CardContent className="space-y-6">
+                  <div className="rounded-lg border p-4">
+                    <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                      <MessageCircle className="h-5 w-5" />
+                      {locale === 'vi' ? 'Đặt câu hỏi hoặc bình luận' : 'Post a Comment'}
+                    </h3>
+                    <form onSubmit={handleSubmitComment} className="space-y-4">
+                      <Textarea
+                        placeholder={
+                          locale === 'vi'
+                            ? 'Đặt câu hỏi hoặc chia sẻ cảm nhận của bạn...'
+                            : 'Ask a question or share your thoughts...'
+                        }
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="min-h-[100px]"
+                        required
+                      />
+                      <Button type="submit">
+                        {locale === 'vi' ? 'Gửi bình luận' : 'Post Comment'}
+                      </Button>
+                    </form>
+                  </div>
 
-              <div className="space-y-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {locale === 'vi' ? 'Đánh giá từ học viên' : 'Student Reviews'} (
-                      {courseReviews.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="rounded-lg border p-4">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-4xl font-bold">{averageRating}</span>
-                            <div className="flex">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`h-5 w-5 ${
-                                    star <= Math.round(Number(averageRating))
-                                      ? 'fill-primary text-primary'
-                                      : 'text-muted-foreground'
-                                  }`}
-                                />
-                              ))}
-                            </div>
+                  <div className="space-y-4">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="rounded-lg border p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                            {comment.user?.full_name?.charAt(0) || 'U'}
                           </div>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {locale === 'vi'
-                              ? `Dựa trên ${courseReviews.length} đánh giá`
-                              : `Based on ${courseReviews.length} reviews`}
-                          </p>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{comment.user?.full_name || 'User'}</p>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(comment.created_at).toLocaleDateString(
+                                  locale === 'vi' ? 'vi-VN' : 'en-US'
+                                )}
+                              </span>
+                            </div>
+                            <p className="mt-2 leading-relaxed text-muted-foreground">
+                              {comment.comment}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="rounded-lg border p-4">
-                      <h3 className="mb-4 text-lg font-semibold">
-                        {locale === 'vi' ? 'Viết đánh giá' : 'Write a Review'}
-                      </h3>
-                      <form onSubmit={handleSubmitReview} className="space-y-4">
-                        <div>
-                          <Label>{locale === 'vi' ? 'Đánh giá' : 'Rating'}</Label>
-                          <div className="mt-2 flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                type="button"
-                                onClick={() => setNewReview({ ...newReview, rating: star })}
-                                className="transition-transform hover:scale-110"
-                              >
-                                <Star
-                                  className={`h-6 w-6 ${
-                                    star <= newReview.rating
-                                      ? 'fill-primary text-primary'
-                                      : 'text-muted-foreground'
-                                  }`}
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="comment">
-                            {locale === 'vi' ? 'Nội dung đánh giá' : 'Your Review'}
-                          </Label>
-                          <Textarea
-                            id="comment"
-                            placeholder={
-                              locale === 'vi'
-                                ? 'Chia sẻ trải nghiệm của bạn với khóa học này...'
-                                : 'Share your experience with this course...'
-                            }
-                            value={newReview.comment}
-                            onChange={(e) =>
-                              setNewReview({ ...newReview, comment: e.target.value })
-                            }
-                            className="mt-2 min-h-[100px]"
-                            required
-                          />
-                        </div>
-                        <Button type="submit">
-                          {locale === 'vi' ? 'Gửi đánh giá' : 'Submit Review'}
-                        </Button>
-                      </form>
-                    </div>
-
-                    <div className="space-y-4">
-                      {courseReviews.map((review) => (
-                        <div key={review.id} className="rounded-lg border p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                                {review.userName.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-medium">{review.userName}</p>
-                                <div className="mt-1 flex items-center gap-2">
-                                  <div className="flex">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                      <Star
-                                        key={star}
-                                        className={`h-4 w-4 ${
-                                          star <= review.rating
-                                            ? 'fill-primary text-primary'
-                                            : 'text-muted-foreground'
-                                        }`}
-                                      />
-                                    ))}
-                                  </div>
-                                  <span className="text-sm text-muted-foreground">
-                                    {review.createdAt}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <p className="mt-3 leading-relaxed text-muted-foreground">
-                            {review.comment[locale]}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {locale === 'vi' ? 'Câu hỏi & thảo luận' : 'Questions & Discussion'} (
-                      {courseComments.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="rounded-lg border p-4">
-                      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                        <MessageCircle className="h-5 w-5" />
-                        {locale === 'vi' ? 'Đặt câu hỏi hoặc bình luận' : 'Post a Comment'}
-                      </h3>
-                      <form onSubmit={handleSubmitComment} className="space-y-4">
-                        <Textarea
-                          placeholder={
-                            locale === 'vi'
-                              ? 'Đặt câu hỏi hoặc chia sẻ cảm nhận của bạn...'
-                              : 'Ask a question or share your thoughts...'
-                          }
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          className="min-h-[100px]"
-                          required
-                        />
-                        <Button type="submit">
-                          {locale === 'vi' ? 'Gửi bình luận' : 'Post Comment'}
-                        </Button>
-                      </form>
-                    </div>
-
-                    <div className="space-y-4">
-                      {courseComments.map((comment) => (
-                        <div key={comment.id} className="rounded-lg border p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                              {comment.userName.charAt(0)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium">{comment.userName}</p>
-                                <span className="text-sm text-muted-foreground">
-                                  {comment.createdAt}
-                                </span>
-                              </div>
-                              <p className="mt-2 leading-relaxed text-muted-foreground">
-                                {comment.comment[locale]}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
