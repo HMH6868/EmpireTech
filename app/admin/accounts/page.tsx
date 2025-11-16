@@ -1,24 +1,8 @@
-"use client"
+'use client';
 
-import type React from "react"
-import { useState } from "react"
-import Image from "next/image"
-import { Plus, Edit, Trash2, Upload, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  products,
-  categories,
-  type Product,
-  type ProductVariant,
-  type LocalizedText,
-  type Price,
-} from "@/lib/mock-data"
-import { useLanguage } from "@/hooks/use-locale"
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -27,362 +11,578 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, Plus, Trash2, Upload, X } from 'lucide-react';
+import Image from 'next/image';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
-const emptyLocalized = (): LocalizedText => ({ en: "", vi: "" })
-const ensureLocalizedText = (value: LocalizedText | string | undefined): LocalizedText => {
-  if (!value) return emptyLocalized()
-  if (typeof value === "string") {
-    return { en: value, vi: value }
-  }
-  return value
-}
+type Account = {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_vi: string;
+  description_en?: string;
+  description_vi?: string;
+  image?: string;
+  category_id?: string;
+  inventory_status: 'in-stock' | 'low-stock' | 'out-of-stock';
+  delivery_type_en?: string;
+  delivery_type_vi?: string;
+  category?: {
+    id: string;
+    name_en: string;
+    name_vi: string;
+    slug: string;
+  };
+  images?: Array<{
+    id: string;
+    image_url: string;
+    order_index: number;
+  }>;
+  variants?: Array<{
+    id: string;
+    account_id: string;
+    name_en: string;
+    name_vi: string;
+    price_usd: number;
+    price_vnd: number;
+    original_price_usd?: number;
+    original_price_vnd?: number;
+    sku: string;
+    image?: string;
+    stock: boolean;
+    is_default: boolean;
+  }>;
+};
 
-const ensurePriceValue = (value: Price | number | undefined): Price => {
-  if (typeof value === "number") {
-    return { usd: value, vnd: 0 }
-  }
-  return value ?? { usd: 0, vnd: 0 }
-}
-
-const getLocalizedString = (value: LocalizedText | string | undefined, lang: "en" | "vi") => {
-  if (!value) return ""
-  return typeof value === "string" ? value : value[lang] ?? ""
-}
+type Category = {
+  id: string;
+  name_en: string;
+  name_vi: string;
+  slug: string;
+};
 
 const statusLabels = {
-  "in-stock": { en: "In Stock", vi: "Còn hàng" },
-  "low-stock": { en: "Low Stock", vi: "Sắp hết" },
-  "out-of-stock": { en: "Out of Stock", vi: "Hết hàng" },
-} as const
+  'in-stock': 'Còn hàng',
+  'low-stock': 'Sắp hết',
+  'out-of-stock': 'Hết hàng',
+} as const;
 
-const getCategoryLabel = (categoryId: string, lang: "en" | "vi") =>
-  categories.find((category) => category.id === categoryId)?.name[lang] ?? categoryId
+export default function AdminAccountsPage() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [variants, setVariants] = useState<Account['variants']>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function AdminProductsPage() {
-  const { locale, formatCurrency, currency } = useLanguage()
-  const [productList, setProductList] = useState(products)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [variants, setVariants] = useState<ProductVariant[]>([])
-  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(null)
+  // State để lưu dữ liệu form
+  const [formData, setFormData] = useState({
+    name_en: '',
+    name_vi: '',
+    slug: '',
+    category_id: '',
+    image: '',
+    inventory_status: 'in-stock' as Account['inventory_status'],
+    delivery_en: '',
+    delivery_vi: '',
+    description_en: '',
+    description_vi: '',
+  });
+
+  // State cho gallery images
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+
+  // State cho delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+
+  useEffect(() => {
+    fetchAccounts();
+    fetchCategories();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/accounts');
+      const data = await response.json();
+      if (data.accounts) {
+        setAccounts(data.accounts);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải sản phẩm:', error);
+      toast.error('Không thể tải danh sách sản phẩm');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      if (data.categories) {
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải danh mục:', error);
+      toast.error('Không thể tải danh sách danh mục');
+    }
+  };
 
   const handleAddProduct = () => {
-    setEditingProduct(null)
-    setVariants([])
-    setIsDialogOpen(true)
-  }
+    setEditingAccount(null);
+    setVariants([]);
+    setGalleryImages([]);
+    setFormData({
+      name_en: '',
+      name_vi: '',
+      slug: '',
+      category_id: categories[0]?.id || '',
+      image: '',
+      inventory_status: 'in-stock',
+      delivery_en: '',
+      delivery_vi: '',
+      description_en: '',
+      description_vi: '',
+    });
+    setIsDialogOpen(true);
+  };
 
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product)
-    setVariants(
-      (product.variants || []).map((variant) => ({
-        ...variant,
-        name: ensureLocalizedText(variant.name),
-        price: ensurePriceValue(variant.price),
-        originalPrice: variant.originalPrice ? ensurePriceValue(variant.originalPrice) : undefined,
-      })),
-    )
-    setIsDialogOpen(true)
-  }
+  const handleEditProduct = (account: Account) => {
+    setEditingAccount(account);
+    setVariants(account.variants || []);
+    setGalleryImages(account.images?.map((img) => img.image_url) || []);
+    setFormData({
+      name_en: account.name_en,
+      name_vi: account.name_vi,
+      slug: account.slug,
+      category_id: account.category_id || categories[0]?.id || '',
+      image: account.image || '',
+      inventory_status: account.inventory_status,
+      delivery_en: account.delivery_type_en || '',
+      delivery_vi: account.delivery_type_vi || '',
+      description_en: account.description_en || '',
+      description_vi: account.description_vi || '',
+    });
+    setIsDialogOpen(true);
+  };
 
-  const handleDeleteProduct = (id: string) => {
-    setProductList(productList.filter((product) => product.id !== id))
-  }
+  const handleDeleteClick = (account: Account) => {
+    setAccountToDelete(account);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!accountToDelete) return;
+
+    try {
+      const response = await fetch(`/api/accounts/${accountToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setAccounts(accounts.filter((account) => account.id !== accountToDelete.id));
+        toast.success('Xóa sản phẩm thành công!');
+        setDeleteDialogOpen(false);
+        setAccountToDelete(null);
+      } else {
+        const error = await response.json();
+        toast.error(`Lỗi: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Lỗi khi xóa sản phẩm:', error);
+      toast.error('Có lỗi xảy ra khi xóa sản phẩm');
+    }
+  };
 
   const handleAddVariant = () => {
     setVariants([
-      ...variants,
+      ...(variants || []),
       {
         id: `variant-${Date.now()}`,
-        name: emptyLocalized(),
-        price: { usd: 0, vnd: 0 },
-        originalPrice: { usd: 0, vnd: 0 },
-        sku: "",
-        image: "",
+        account_id: editingAccount?.id || '',
+        name_en: '',
+        name_vi: '',
+        price_usd: 0,
+        price_vnd: 0,
+        sku: '',
+        image: '',
         stock: true,
+        is_default: false,
       },
-    ])
-    setEditingVariantIndex(variants.length)
-  }
+    ]);
+  };
 
-  const handleUpdateVariant = (index: number, field: keyof ProductVariant, value: any) => {
-    const updatedVariants = [...variants]
-    updatedVariants[index] = { ...updatedVariants[index], [field]: value }
-    setVariants(updatedVariants)
-  }
+  const handleUpdateVariant = (index: number, field: string, value: any) => {
+    const updatedVariants = [...(variants || [])];
+    updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+    setVariants(updatedVariants);
+  };
 
   const handleDeleteVariant = (index: number) => {
-    setVariants(variants.filter((_, i) => i !== index))
-  }
+    setVariants((variants || []).filter((_, i) => i !== index));
+  };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const galleryInput = (formData.get("images") as string) || ""
-    const galleryImages = galleryInput
-      .split("\n")
-      .map((img) => img.trim())
-      .filter(Boolean)
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    const normalizedVariants =
-      variants.length > 0
-        ? variants.map((variant) => ({
-            ...variant,
-            name: ensureLocalizedText(variant.name),
-            price: ensurePriceValue(variant.price),
-            originalPrice: variant.originalPrice ? ensurePriceValue(variant.originalPrice) : undefined,
-          }))
-        : undefined
+    const accountData = {
+      slug: formData.slug,
+      name_en: formData.name_en,
+      name_vi: formData.name_vi,
+      description_en: formData.description_en,
+      description_vi: formData.description_vi,
+      image: formData.image,
+      category_id: formData.category_id,
+      inventory_status: formData.inventory_status,
+      delivery_type_en: formData.delivery_en,
+      delivery_type_vi: formData.delivery_vi,
+      variants,
+      gallery_images: galleryImages.filter((url) => url.trim() !== ''), // Lọc URL rỗng
+    };
 
-    const newProduct: Product = {
-      id: editingProduct?.id || String(productList.length + 1),
-      slug: (formData.get("slug") as string)?.trim() || editingProduct?.slug || "",
-      name: {
-        en: (formData.get("name_en") as string)?.trim() || "",
-        vi: (formData.get("name_vi") as string)?.trim() || "",
-      },
-      image: (formData.get("image") as string)?.trim() || galleryImages[0] || editingProduct?.image || "",
-      images: galleryImages.length ? galleryImages : editingProduct?.images,
-      price: {
-        usd: Number.parseFloat((formData.get("price_usd") as string) || "0"),
-        vnd: Number.parseFloat((formData.get("price_vnd") as string) || "0"),
-      },
-      categoryId: (formData.get("categoryId") as string) || categories[0]?.id || "ai-tools",
-      rating: editingProduct?.rating || 0,
-      description: {
-        en: (formData.get("description_en") as string) || "",
-        vi: (formData.get("description_vi") as string) || "",
-      },
-      inventoryStatus: (formData.get("inventoryStatus") as Product["inventoryStatus"]) || "in-stock",
-      deliveryType: {
-        en: (formData.get("delivery_en") as string) || "",
-        vi: (formData.get("delivery_vi") as string) || "",
-      },
-      variants: normalizedVariants,
+    try {
+      if (editingAccount) {
+        // Cập nhật sản phẩm
+        const response = await fetch(`/api/accounts/${editingAccount.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(accountData),
+        });
+
+        if (response.ok) {
+          const { account } = await response.json();
+          if (account) {
+            setAccounts(accounts.map((a) => (a.id === editingAccount.id ? account : a)));
+            toast.success('Cập nhật sản phẩm thành công!');
+          } else {
+            toast.error('Không nhận được dữ liệu sản phẩm sau khi cập nhật');
+            return;
+          }
+        } else {
+          const error = await response.json();
+          toast.error(`Lỗi: ${error.error}`);
+          return;
+        }
+      } else {
+        // Tạo sản phẩm mới
+        const response = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(accountData),
+        });
+
+        if (response.ok) {
+          const { account } = await response.json();
+          if (account) {
+            setAccounts([account, ...accounts]);
+            toast.success('Tạo sản phẩm thành công!');
+          } else {
+            toast.error('Không nhận được dữ liệu sản phẩm sau khi tạo');
+            return;
+          }
+        } else {
+          const error = await response.json();
+          toast.error(`Lỗi: ${error.error}`);
+          return;
+        }
+      }
+
+      setIsDialogOpen(false);
+      setEditingAccount(null);
+      setVariants([]);
+    } catch (error) {
+      console.error('Lỗi khi lưu sản phẩm:', error);
+      toast.error('Có lỗi xảy ra khi lưu sản phẩm');
     }
+  };
 
-    if (editingProduct) {
-      setProductList(productList.map((p) => (p.id === editingProduct.id ? newProduct : p)))
-    } else {
-      setProductList([...productList, newProduct])
-    }
-
-    setIsDialogOpen(false)
-    setEditingProduct(null)
-    setVariants([])
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Đang tải...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Manage Products</h1>
-          <p className="mt-2 text-muted-foreground">Add, edit, or remove products from your inventory</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2" onClick={handleAddProduct}>
-              <Plus className="h-4 w-4" />
-              Add Product
+    <>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa sản phẩm</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa sản phẩm{' '}
+              <span className="font-semibold">{accountToDelete?.name_vi}</span>? Hành động này không
+              thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Hủy
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-                <DialogDescription>
-                  {editingProduct
-                    ? "Update the product details below."
-                    : "Fill in the details for the new product. Use Markdown for description."}
-                </DialogDescription>
-              </DialogHeader>
-              <Tabs defaultValue="general" className="mt-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="general">General Info</TabsTrigger>
-                  <TabsTrigger value="variants">Variants ({variants.length})</TabsTrigger>
-                  <TabsTrigger value="description">Description</TabsTrigger>
-                </TabsList>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Xóa
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-                <TabsContent value="general" className="space-y-4 py-4">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name_en">Product Name (English)</Label>
-                      <Input
-                        id="name_en"
-                        name="name_en"
-                        placeholder="ChatGPT Plus Account"
-                        defaultValue={editingProduct ? editingProduct.name.en : ""}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="name_vi">Product Name (Vietnamese)</Label>
-                      <Input
-                        id="name_vi"
-                        name="name_vi"
-                        placeholder="Tài khoản ChatGPT Plus"
-                        defaultValue={editingProduct ? editingProduct.name.vi : ""}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="slug">Slug</Label>
-                      <Input
-                        id="slug"
-                        name="slug"
-                        placeholder="chatgpt-plus-account"
-                        defaultValue={editingProduct?.slug}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryId">Category</Label>
-                      <Select name="categoryId" defaultValue={editingProduct?.categoryId || categories[0]?.id}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name.en} / {category.name.vi}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="price_usd">Price (USD)</Label>
-                      <Input
-                        id="price_usd"
-                        name="price_usd"
-                        type="number"
-                        step="0.01"
-                        placeholder="15.99"
-                        defaultValue={editingProduct ? editingProduct.price.usd : ""}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="price_vnd">Price (VND)</Label>
-                      <Input
-                        id="price_vnd"
-                        name="price_vnd"
-                        type="number"
-                        step="1000"
-                        placeholder="349000"
-                        defaultValue={editingProduct ? editingProduct.price.vnd : ""}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="image">Main Image URL</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="image"
-                        name="image"
-                        placeholder="/images/products/chatgpt-plus/main.png"
-                        defaultValue={editingProduct?.image}
-                      />
-                      <Button type="button" variant="outline" size="icon">
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Enter image URL or click upload icon (mock)</p>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="images">Gallery Images (one per line)</Label>
-                    <Textarea
-                      id="images"
-                      name="images"
-                      placeholder="/images/products/chatgpt-plus/main.png"
-                      defaultValue={editingProduct?.images?.join("\n") ?? ""}
-                      className="min-h-[120px]"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="inventoryStatus">Stock Status</Label>
-                      <Select name="inventoryStatus" defaultValue={editingProduct?.inventoryStatus || "in-stock"}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="in-stock">In Stock</SelectItem>
-                          <SelectItem value="low-stock">Low Stock</SelectItem>
-                          <SelectItem value="out-of-stock">Out of Stock</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Delivery Type</Label>
-                      <Input
-                        name="delivery_en"
-                        placeholder="Instant email delivery"
-                        defaultValue={editingProduct ? editingProduct.deliveryType.en : ""}
-                        required
-                      />
-                      <Input
-                        name="delivery_vi"
-                        placeholder="Giao qua email ngay"
-                        defaultValue={editingProduct ? editingProduct.deliveryType.vi : ""}
-                        required
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
+      <div className="p-6 md:p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Quản lý sản phẩm</h1>
+            <p className="mt-2 text-muted-foreground">Thêm, sửa hoặc xóa sản phẩm trong kho</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2" onClick={handleAddProduct}>
+                <Plus className="h-4 w-4" />
+                Thêm sản phẩm
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle>{editingAccount ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}</DialogTitle>
+                  <DialogDescription>
+                    {editingAccount
+                      ? 'Cập nhật thông tin sản phẩm bên dưới.'
+                      : 'Điền thông tin cho sản phẩm mới. Sử dụng Markdown cho mô tả.'}
+                  </DialogDescription>
+                </DialogHeader>
+                <Tabs defaultValue="general" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="general">Thông tin chung</TabsTrigger>
+                    <TabsTrigger value="variants">Biến thể ({(variants || []).length})</TabsTrigger>
+                    <TabsTrigger value="description">Mô tả</TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="variants" className="space-y-4 py-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Add multiple variants for this product (e.g., different durations, packages)
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddVariant}
-                      className="gap-2 bg-transparent"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Add Variant
-                    </Button>
-                  </div>
-
-                  {variants.length === 0 ? (
-                    <Card className="border-dashed">
-                      <CardContent className="flex flex-col items-center justify-center py-8">
-                        <p className="text-sm text-muted-foreground">No variants added yet</p>
+                  <TabsContent value="general" className="space-y-4 py-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="name_en">Tên sản phẩm (Tiếng Anh)</Label>
+                        <Input
+                          id="name_en"
+                          name="name_en"
+                          placeholder="ChatGPT Plus Account"
+                          value={formData.name_en}
+                          onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="name_vi">Tên sản phẩm (Tiếng Việt)</Label>
+                        <Input
+                          id="name_vi"
+                          name="name_vi"
+                          placeholder="Tài khoản ChatGPT Plus"
+                          value={formData.name_vi}
+                          onChange={(e) => setFormData({ ...formData, name_vi: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="slug">Slug</Label>
+                        <Input
+                          id="slug"
+                          name="slug"
+                          placeholder="chatgpt-plus-account"
+                          value={formData.slug}
+                          onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="category_id">Danh mục</Label>
+                        <Select
+                          name="category_id"
+                          value={formData.category_id}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, category_id: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn danh mục" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name_vi}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="image">URL hình ảnh chính</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="image"
+                          name="image"
+                          placeholder="https://i.imgur.com/example.png"
+                          value={formData.image}
+                          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                        />
+                        <Button type="button" variant="outline" size="icon">
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Nhập URL hình ảnh hoặc nhấn biểu tượng tải lên
+                      </p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Thư viện ảnh (Gallery)</Label>
+                      <div className="space-y-2">
+                        {galleryImages.map((imageUrl, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              placeholder={`URL ảnh ${index + 1}`}
+                              value={imageUrl}
+                              onChange={(e) => {
+                                const newImages = [...galleryImages];
+                                newImages[index] = e.target.value;
+                                setGalleryImages(newImages);
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                setGalleryImages(galleryImages.filter((_, i) => i !== index));
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={handleAddVariant}
-                          className="mt-3 bg-transparent"
+                          onClick={() => setGalleryImages([...galleryImages, ''])}
+                          className="w-full"
                         >
-                          Add Your First Variant
+                          <Plus className="h-4 w-4 mr-2" />
+                          Thêm ảnh
                         </Button>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-3">
-                      {variants.map((variant, index) => {
-                        const localizedName = ensureLocalizedText(variant.name)
-                        const basePrice = ensurePriceValue(variant.price)
-                        const comparePrice = variant.originalPrice ? ensurePriceValue(variant.originalPrice) : undefined
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Thêm nhiều ảnh để hiển thị trong gallery sản phẩm
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="inventory_status">Trạng thái kho</Label>
+                        <Select
+                          name="inventory_status"
+                          value={formData.inventory_status}
+                          onValueChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              inventory_status: value as Account['inventory_status'],
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn trạng thái" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="in-stock">Còn hàng</SelectItem>
+                            <SelectItem value="low-stock">Sắp hết</SelectItem>
+                            <SelectItem value="out-of-stock">Hết hàng</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Loại giao hàng</Label>
+                        <Input
+                          name="delivery_en"
+                          placeholder="Instant email delivery"
+                          value={formData.delivery_en}
+                          onChange={(e) =>
+                            setFormData({ ...formData, delivery_en: e.target.value })
+                          }
+                        />
+                        <Input
+                          name="delivery_vi"
+                          placeholder="Giao qua email ngay"
+                          value={formData.delivery_vi}
+                          onChange={(e) =>
+                            setFormData({ ...formData, delivery_vi: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
 
-                        return (
+                  <TabsContent value="variants" className="space-y-4 py-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Thêm nhiều biến thể cho sản phẩm này (ví dụ: thời hạn khác nhau, gói khác
+                        nhau)
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddVariant}
+                        className="gap-2 bg-transparent"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Thêm biến thể
+                      </Button>
+                    </div>
+
+                    {!variants || variants.length === 0 ? (
+                      <Card className="border-dashed">
+                        <CardContent className="flex flex-col items-center justify-center py-8">
+                          <p className="text-sm text-muted-foreground">Chưa có biến thể nào</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddVariant}
+                            className="mt-3 bg-transparent"
+                          >
+                            Thêm biến thể đầu tiên
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div className="space-y-3">
+                        {variants.map((variant, index) => (
                           <Card key={variant.id}>
                             <CardContent className="p-4">
                               <div className="mb-3 flex items-center justify-between">
-                                <Badge variant="secondary">Variant {index + 1}</Badge>
+                                <Badge variant="secondary">Biến thể {index + 1}</Badge>
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -396,23 +596,23 @@ export default function AdminProductsPage() {
                               <div className="grid gap-3">
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Variant Name (EN)</Label>
+                                    <Label className="text-xs">Tên biến thể (EN)</Label>
                                     <Input
                                       placeholder="1 Month Access"
-                                      value={localizedName.en}
+                                      value={variant.name_en}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "name", { ...localizedName, en: e.target.value })
+                                        handleUpdateVariant(index, 'name_en', e.target.value)
                                       }
                                       className="h-9"
                                     />
                                   </div>
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Variant Name (VI)</Label>
+                                    <Label className="text-xs">Tên biến thể (VI)</Label>
                                     <Input
                                       placeholder="1 tháng sử dụng"
-                                      value={localizedName.vi}
+                                      value={variant.name_vi}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "name", { ...localizedName, vi: e.target.value })
+                                        handleUpdateVariant(index, 'name_vi', e.target.value)
                                       }
                                       className="h-9"
                                     />
@@ -424,81 +624,89 @@ export default function AdminProductsPage() {
                                     <Input
                                       placeholder="PRODUCT-1M"
                                       value={variant.sku}
-                                      onChange={(e) => handleUpdateVariant(index, "sku", e.target.value)}
+                                      onChange={(e) =>
+                                        handleUpdateVariant(index, 'sku', e.target.value)
+                                      }
                                       className="h-9"
                                     />
                                   </div>
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Image URL</Label>
+                                    <Label className="text-xs">URL hình ảnh</Label>
                                     <Input
                                       placeholder="/images/products/chatgpt-plus/main.png"
-                                      value={variant.image}
-                                      onChange={(e) => handleUpdateVariant(index, "image", e.target.value)}
+                                      value={variant.image || ''}
+                                      onChange={(e) =>
+                                        handleUpdateVariant(index, 'image', e.target.value)
+                                      }
                                       className="h-9"
                                     />
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Price (USD)</Label>
+                                    <Label className="text-xs">Giá (USD)</Label>
                                     <Input
                                       type="number"
                                       step="0.01"
                                       placeholder="15.99"
-                                      value={basePrice.usd}
+                                      value={variant.price_usd}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "price", {
-                                          ...basePrice,
-                                          usd: Number.parseFloat(e.target.value) || 0,
-                                        })
+                                        handleUpdateVariant(
+                                          index,
+                                          'price_usd',
+                                          Number.parseFloat(e.target.value) || 0
+                                        )
                                       }
                                       className="h-9"
                                     />
                                   </div>
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Price (VND)</Label>
+                                    <Label className="text-xs">Giá (VND)</Label>
                                     <Input
                                       type="number"
                                       step="1000"
                                       placeholder="349000"
-                                      value={basePrice.vnd}
+                                      value={variant.price_vnd}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "price", {
-                                          ...basePrice,
-                                          vnd: Number.parseFloat(e.target.value) || 0,
-                                        })
+                                        handleUpdateVariant(
+                                          index,
+                                          'price_vnd',
+                                          Number.parseFloat(e.target.value) || 0
+                                        )
                                       }
                                       className="h-9"
                                     />
                                   </div>
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Original (USD)</Label>
+                                    <Label className="text-xs">Giá gốc (USD)</Label>
                                     <Input
                                       type="number"
                                       step="0.01"
                                       placeholder="18.99"
-                                      value={comparePrice?.usd ?? ""}
+                                      value={variant.original_price_usd || ''}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "originalPrice", {
-                                          ...(comparePrice ?? { usd: 0, vnd: 0 }),
-                                          usd: Number.parseFloat(e.target.value) || 0,
-                                        })
+                                        handleUpdateVariant(
+                                          index,
+                                          'original_price_usd',
+                                          Number.parseFloat(e.target.value) || undefined
+                                        )
                                       }
                                       className="h-9"
                                     />
                                   </div>
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Original (VND)</Label>
+                                    <Label className="text-xs">Giá gốc (VND)</Label>
                                     <Input
                                       type="number"
                                       step="1000"
                                       placeholder="399000"
-                                      value={comparePrice?.vnd ?? ""}
+                                      value={variant.original_price_vnd || ''}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, "originalPrice", {
-                                          ...(comparePrice ?? { usd: 0, vnd: 0 }),
-                                          vnd: Number.parseFloat(e.target.value) || 0,
-                                        })
+                                        handleUpdateVariant(
+                                          index,
+                                          'original_price_vnd',
+                                          Number.parseFloat(e.target.value) || undefined
+                                        )
                                       }
                                       className="h-9"
                                     />
@@ -506,17 +714,19 @@ export default function AdminProductsPage() {
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                   <div className="grid gap-1.5">
-                                    <Label className="text-xs">Stock</Label>
+                                    <Label className="text-xs">Tồn kho</Label>
                                     <Select
-                                      value={variant.stock ? "true" : "false"}
-                                      onValueChange={(val) => handleUpdateVariant(index, "stock", val === "true")}
+                                      value={variant.stock ? 'true' : 'false'}
+                                      onValueChange={(val) =>
+                                        handleUpdateVariant(index, 'stock', val === 'true')
+                                      }
                                     >
                                       <SelectTrigger className="h-9">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="true">Available</SelectItem>
-                                        <SelectItem value="false">Sold Out</SelectItem>
+                                        <SelectItem value="true">Còn hàng</SelectItem>
+                                        <SelectItem value="false">Hết hàng</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
@@ -524,152 +734,167 @@ export default function AdminProductsPage() {
                                     <input
                                       type="checkbox"
                                       id={`default-${index}`}
-                                      checked={variant.isDefault || false}
+                                      checked={variant.is_default || false}
                                       onChange={(e) => {
-                                        const updatedVariants = variants.map((v, i) => ({
+                                        const updatedVariants = (variants || []).map((v, i) => ({
                                           ...v,
-                                          isDefault: i === index ? e.target.checked : false,
-                                        }))
-                                        setVariants(updatedVariants)
+                                          is_default: i === index ? e.target.checked : false,
+                                        }));
+                                        setVariants(updatedVariants);
                                       }}
                                       className="h-4 w-4"
                                     />
                                     <Label htmlFor={`default-${index}`} className="text-xs">
-                                      Set as default variant
+                                      Đặt làm biến thể mặc định
                                     </Label>
                                   </div>
                                 </div>
                               </div>
                             </CardContent>
                           </Card>
-                        )
-                      })}
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="description" className="space-y-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="description_en">Mô tả (Markdown) - Tiếng Anh</Label>
+                      <Textarea
+                        id="description_en"
+                        name="description_en"
+                        placeholder="## Premium Account&#10;&#10;This is a **high-quality** account with full access..."
+                        value={formData.description_en}
+                        onChange={(e) =>
+                          setFormData({ ...formData, description_en: e.target.value })
+                        }
+                        className="min-h-[200px] font-mono text-sm"
+                      />
                     </div>
-                  )}
-                </TabsContent>
+                    <div className="grid gap-2">
+                      <Label htmlFor="description_vi">Mô tả (Markdown) - Tiếng Việt</Label>
+                      <Textarea
+                        id="description_vi"
+                        name="description_vi"
+                        placeholder="## Tài khoản cao cấp&#10;&#10;Đây là tài khoản **chính chủ** với đầy đủ quyền hạn..."
+                        value={formData.description_vi}
+                        onChange={(e) =>
+                          setFormData({ ...formData, description_vi: e.target.value })
+                        }
+                        className="min-h-[200px] font-mono text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Hỗ trợ định dạng Markdown (tiêu đề, in đậm, danh sách, v.v.)
+                      </p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
-                <TabsContent value="description" className="space-y-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="description_en">Description (Markdown) - English</Label>
-                    <Textarea
-                      id="description_en"
-                      name="description_en"
-                      placeholder="## Premium Account&#10;&#10;This is a **high-quality** account with full access..."
-                      defaultValue={editingProduct ? editingProduct.description.en : ""}
-                      className="min-h-[200px] font-mono text-sm"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description_vi">Description (Markdown) - Vietnamese</Label>
-                    <Textarea
-                      id="description_vi"
-                      name="description_vi"
-                      placeholder="## Tài khoản cao cấp&#10;&#10;Đây là tài khoản **chính chủ** với đầy đủ quyền hạn..."
-                      defaultValue={editingProduct ? editingProduct.description.vi : ""}
-                      className="min-h-[200px] font-mono text-sm"
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Supports Markdown formatting (headers, bold, lists, etc.)
-                    </p>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                <DialogFooter className="mt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button type="submit">{editingAccount ? 'Cập nhật' : 'Tạo'} sản phẩm</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-              <DialogFooter className="mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">{editingProduct ? "Update" : "Create"} Product</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Products ({productList.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Product</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Category</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Price</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Variants</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Stock</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Rating</th>
-                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productList.map((product) => {
-                  const localizedName = getLocalizedString(product.name, locale)
-                  const status = product.inventoryStatus || "in-stock"
-                  const statusLabel = statusLabels[status as keyof typeof statusLabels] || statusLabels["in-stock"]
-                  return (
-                    <tr key={product.id} className="border-b border-border last:border-0">
+        <Card>
+          <CardHeader>
+            <CardTitle>Tất cả sản phẩm ({accounts.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                      Sản phẩm
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                      Danh mục
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                      Biến thể
+                    </th>
+                    <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                      Tồn kho
+                    </th>
+                    <th className="pb-3 text-right text-sm font-medium text-muted-foreground">
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accounts.map((account) => (
+                    <tr key={account.id} className="border-b border-border last:border-0">
                       <td className="py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-muted">
                             <Image
-                              src={product.image || "/placeholder.svg"}
-                              alt={localizedName || product.slug}
+                              src={account.image || '/placeholder.svg'}
+                              alt={account.name_vi || account.slug}
                               fill
                               className="object-cover"
                             />
                           </div>
-                          <span className="text-sm font-medium">{localizedName || product.slug}</span>
+                          <span className="text-sm font-medium">
+                            {account.name_vi || account.slug}
+                          </span>
                         </div>
                       </td>
-                      <td className="py-3 text-sm">{getCategoryLabel(product.categoryId, locale)}</td>
-                      <td className="py-3 text-sm font-medium">
-                        {formatCurrency(product.price[currency], { currency })}
+                      <td className="py-3 text-sm">
+                        {account.category?.name_vi || 'Chưa phân loại'}
                       </td>
                       <td className="py-3">
-                        {product.variants && product.variants.length > 0 ? (
-                          <Badge variant="secondary">{product.variants.length} variants</Badge>
+                        {account.variants && account.variants.length > 0 ? (
+                          <Badge variant="secondary">{account.variants.length} biến thể</Badge>
                         ) : (
-                          <span className="text-sm text-muted-foreground">None</span>
+                          <span className="text-sm text-muted-foreground">Không có</span>
                         )}
                       </td>
                       <td className="py-3">
                         <Badge
                           variant={
-                            status === "in-stock" ? "default" : status === "low-stock" ? "secondary" : "destructive"
+                            account.inventory_status === 'in-stock'
+                              ? 'default'
+                              : account.inventory_status === 'low-stock'
+                              ? 'secondary'
+                              : 'destructive'
                           }
                         >
-                          {statusLabel[locale]}
+                          {statusLabels[account.inventory_status]}
                         </Badge>
                       </td>
-                      <td className="py-3 text-sm">{product.rating} ★</td>
                       <td className="py-3 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditProduct(product)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditProduct(account)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="text-destructive"
-                            onClick={() => handleDeleteProduct(product.id)}
+                            onClick={() => handleDeleteClick(account)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
 }

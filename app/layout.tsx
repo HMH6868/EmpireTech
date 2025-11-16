@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type React from 'react';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
@@ -11,7 +12,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <Toaster richColors />
+      </body>
     </html>
   );
 }
