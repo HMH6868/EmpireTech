@@ -145,12 +145,47 @@ export default function CourseDetailPage() {
       ? [course.thumbnail]
       : ['/placeholder.svg'];
 
-  const handleEnroll = () => {
-    toast.success(
-      locale === 'vi'
-        ? `${courseTitle} đã được thêm vào giỏ hàng.`
-        : `${courseTitle} has been added to your cart.`
-    );
+  const handleEnroll = async () => {
+    if (!course) return;
+
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          item_id: course.id,
+          item_type: 'course',
+          variant_id: null,
+          price_usd: course.price_usd,
+          price_vnd: course.price_vnd,
+          quantity: 1,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success(
+          locale === 'vi'
+            ? `${courseTitle} đã được thêm vào giỏ hàng.`
+            : `${courseTitle} has been added to your cart.`
+        );
+      } else {
+        const error = await response.json();
+        if (response.status === 401) {
+          toast.error(
+            locale === 'vi'
+              ? 'Vui lòng đăng nhập để thêm vào giỏ hàng'
+              : 'Please login to add to cart'
+          );
+        } else {
+          toast.error(error.error || 'Failed to add to cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error(locale === 'vi' ? 'Có lỗi xảy ra' : 'An error occurred');
+    }
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {

@@ -31,7 +31,7 @@ type UserProfile = {
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [cartCount] = useState(3);
+  const [cartCount, setCartCount] = useState(0);
   const [sessionUser, setSessionUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -106,6 +106,7 @@ export function Header() {
     if (!sessionUser?.id) {
       setProfile(null);
       setIsAdmin(false);
+      setCartCount(0);
       return;
     }
 
@@ -135,6 +136,51 @@ export function Header() {
       isActive = false;
     };
   }, [sessionUser?.id, supabase]);
+
+  useEffect(() => {
+    if (!sessionUser?.id) {
+      setCartCount(0);
+      return;
+    }
+
+    const fetchCartCount = async () => {
+      try {
+        const response = await fetch('/api/cart', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[Header] Cart items:', data.items);
+          // Count number of unique items, not total quantity
+          const itemCount = data.items?.length || 0;
+          console.log('[Header] Total cart count:', itemCount);
+          setCartCount(itemCount);
+        }
+      } catch (error) {
+        console.error('Error fetching cart count:', error);
+      }
+    };
+
+    fetchCartCount();
+
+    // Listen for cart update events
+    const handleCartUpdate = () => {
+      console.log('[Header] Cart updated event received');
+      fetchCartCount();
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    // Refresh cart count every 10 seconds
+    const interval = setInterval(fetchCartCount, 10000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, [sessionUser?.id]);
 
   const metadata = sessionUser?.user_metadata as
     | Record<string, string | null | undefined>

@@ -214,15 +214,51 @@ export default function ProductDetailPage() {
   const descriptionContent =
     (locale === 'vi' ? product.description_vi : product.description_en) || '';
 
-  const handleAddToCart = () => {
-    const variantName = selectedVariant
-      ? ` - ${locale === 'vi' ? selectedVariant.name_vi : selectedVariant.name_en}`
-      : '';
-    toast.success(
-      locale === 'vi'
-        ? `${productName}${variantName} đã được thêm vào giỏ hàng.`
-        : `${productName}${variantName} has been added to your cart.`
-    );
+  const handleAddToCart = async () => {
+    if (!selectedVariant) {
+      toast.error(locale === 'vi' ? 'Vui lòng chọn gói' : 'Please select a variant');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          item_id: product.id,
+          item_type: 'account',
+          variant_id: selectedVariant.id,
+          price_usd: selectedVariant.price_usd,
+          price_vnd: selectedVariant.price_vnd,
+          quantity: 1,
+        }),
+      });
+
+      if (response.ok) {
+        const variantName = locale === 'vi' ? selectedVariant.name_vi : selectedVariant.name_en;
+        toast.success(
+          locale === 'vi'
+            ? `${productName} - ${variantName} đã được thêm vào giỏ hàng.`
+            : `${productName} - ${variantName} has been added to your cart.`
+        );
+      } else {
+        const error = await response.json();
+        if (response.status === 401) {
+          toast.error(
+            locale === 'vi'
+              ? 'Vui lòng đăng nhập để thêm vào giỏ hàng'
+              : 'Please login to add to cart'
+          );
+        } else {
+          toast.error(error.error || 'Failed to add to cart');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error(locale === 'vi' ? 'Có lỗi xảy ra' : 'An error occurred');
+    }
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
