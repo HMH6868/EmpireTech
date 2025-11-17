@@ -1,5 +1,6 @@
 'use client';
 
+import { CommentSection } from '@/components/comment-section';
 import { CourseCard } from '@/components/course-card';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
@@ -15,7 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/hooks/use-locale';
 import {
   Award,
@@ -23,14 +23,12 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
   Play,
   ShoppingCart,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import type React from 'react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -53,30 +51,32 @@ type Course = {
   }>;
 };
 
-type Comment = {
-  id: string;
-  user_id: string;
-  comment: string;
-  created_at: string;
-  user?: {
-    full_name: string;
-  };
-};
-
 export default function CourseDetailPage() {
   const params = useParams();
   const { locale, currency, formatCurrency } = useLanguage();
   const [course, setCourse] = useState<Course | null>(null);
   const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
-  const [comments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newComment, setNewComment] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
 
   useEffect(() => {
     fetchCourse();
+    fetchCurrentUser();
   }, [params.slug]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUserId(data.profile?.id);
+      }
+    } catch (error) {
+      // User not logged in
+    }
+  };
 
   const fetchCourse = async () => {
     try {
@@ -185,16 +185,6 @@ export default function CourseDetailPage() {
       console.error('Error adding to cart:', error);
       toast.error(locale === 'vi' ? 'Có lỗi xảy ra' : 'An error occurred');
     }
-  };
-
-  const handleSubmitComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success(
-      locale === 'vi'
-        ? 'Bình luận của bạn đã được gửi và đang chờ duyệt.'
-        : 'Your comment has been submitted and is pending approval.'
-    );
-    setNewComment('');
   };
 
   const nextImage = () => {
@@ -421,58 +411,15 @@ export default function CourseDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {locale === 'vi' ? 'Câu hỏi & bình luận' : 'Questions & Comments'} (
-                    {comments.length})
+                    {locale === 'vi' ? 'Câu hỏi & bình luận' : 'Questions & Comments'}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                      <MessageCircle className="h-5 w-5" />
-                      {locale === 'vi' ? 'Đặt câu hỏi hoặc bình luận' : 'Post a Comment'}
-                    </h3>
-                    <form onSubmit={handleSubmitComment} className="space-y-4">
-                      <Textarea
-                        placeholder={
-                          locale === 'vi'
-                            ? 'Đặt câu hỏi hoặc chia sẻ cảm nhận của bạn...'
-                            : 'Ask a question or share your thoughts...'
-                        }
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        className="min-h-[100px]"
-                        required
-                      />
-                      <Button type="submit">
-                        {locale === 'vi' ? 'Gửi bình luận' : 'Post Comment'}
-                      </Button>
-                    </form>
-                  </div>
-
-                  <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className="rounded-lg border p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                            {comment.user?.full_name?.charAt(0) || 'U'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium">{comment.user?.full_name || 'User'}</p>
-                              <span className="text-sm text-muted-foreground">
-                                {new Date(comment.created_at).toLocaleDateString(
-                                  locale === 'vi' ? 'vi-VN' : 'en-US'
-                                )}
-                              </span>
-                            </div>
-                            <p className="mt-2 leading-relaxed text-muted-foreground">
-                              {comment.comment}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <CardContent>
+                  <CommentSection
+                    itemId={course.id}
+                    itemType="course"
+                    currentUserId={currentUserId}
+                  />
                 </CardContent>
               </Card>
             </div>
