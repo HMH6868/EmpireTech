@@ -1,7 +1,32 @@
 import { createSupabaseRouteClient } from '@/lib/supabase/server';
+import { unstable_cache } from 'next/cache';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+const getCachedUsers = unstable_cache(
+  async (page: number, perPage: number) => {
+    const supabase = await createSupabaseRouteClient();
+
+    const offset = (page - 1) * perPage;
+
+    // Lấy danh sách users với phân trang
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, status, created_at')
+      .order('created_at', { ascending: true })
+      .range(offset, offset + perPage - 1);
+
+    if (error) throw error;
+
+    // Lấy tổng số users
+    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+
+    return { data: data ?? [], count: count ?? 0 };
+  },
+  ['admin-users-list'],
+  { revalidate: 300 } // Cache 5 phút
+);
+
+export async function GET(request: Request) {
   try {
     const supabase = await createSupabaseRouteClient();
     const {
@@ -23,17 +48,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Lấy danh sách users
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, avatar, role, status, created_at')
-      .order('created_at', { ascending: true });
+    // Lấy pagination params
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get('page');
+    const perPageParam = searchParams.get('perPage');
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const page = Math.max(parseInt(pageParam || '1', 10), 1);
+    const perPage = Math.min(Math.max(parseInt(perPageParam || '20', 10), 1), 100);
 
-    return NextResponse.json({ profiles: data ?? [] });
+    const { data, count } = await getCachedUsers(page, perPage);
+
+    const totalPages = Math.ceil(count / perPage);
+
+    return NextResponse.json({
+      profiles: data,
+      total: count,
+      page,
+      perPage,
+      totalPages,
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

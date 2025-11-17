@@ -1,26 +1,81 @@
+import { ApiError, handleApiError } from '@/lib/errors';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { unstable_cache } from 'next/cache';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
-  try {
+const getCachedCourses = unstable_cache(
+  async (limit: number, cursor?: string) => {
     const supabase = await createSupabaseServerClient();
 
-    const { data: courses, error } = await supabase
+    let query = supabase
       .from('courses')
       .select(
         `
-        *,
-        images:course_images(id, image_url, order_index)
+        id,
+        slug,
+        title_en,
+        title_vi,
+        thumbnail,
+        price_vnd,
+        price_usd,
+        created_at,
+        images:course_images(image_url)
       `
       )
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(limit + 1);
+
+    // Nếu có cursor, lấy các bản ghi có created_at nhỏ hơn cursor
+    if (cursor) {
+      query = query.lt('created_at', cursor);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
-    return NextResponse.json({ courses: courses || [] });
+    return data || [];
+  },
+  ['courses-list'],
+  { revalidate: 900 } // Cache 15 phút
+);
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    // Lấy limit từ query params, mặc định 20, tối đa 50
+    const limitParam = searchParams.get('limit');
+    const limit = Math.min(parseInt(limitParam || '20', 10), 50);
+
+    // Lấy cursor (timestamp created_at) để phân trang
+    const cursor = searchParams.get('cursor') || undefined;
+
+    const data = await getCachedCourses(limit, cursor);
+
+    // Kiểm tra còn trang sau không
+    const hasMore = data.length > limit;
+    const items = hasMore ? data.slice(0, -1) : data;
+
+    // Lấy cursor cho trang tiếp theo
+    const nextCursor = hasMore && items.length > 0 ? items[items.length - 1]?.created_at : null;
+
+    // Format images để chỉ lấy URL đầu tiên
+    const formattedItems = items.map((course: any) => ({
+      ...course,
+      thumbnail_image: course.images?.[0]?.image_url || course.thumbnail,
+      images: undefined, // Xóa field images gốc
+    }));
+
+    return NextResponse.json({
+      items: formattedItems,
+      nextCursor,
+      hasMore,
+      limit,
+    });
   } catch (error) {
-    console.error('Error fetching courses:', error);
-    return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
+    console.error('[courses/GET]', error);
+    return handleApiError(error);
   }
 }
 
@@ -33,7 +88,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getSession();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      throw new ApiError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
     const { data: profile } = await supabase
@@ -43,7 +98,7 @@ export async function POST(request: Request) {
       .single();
 
     if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      throw new ApiError('Forbidden', 403, 'FORBIDDEN');
     }
 
     const body = await request.json();
@@ -61,7 +116,7 @@ export async function POST(request: Request) {
     } = body;
 
     if (!slug || !title_en || !title_vi || !instructor) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      throw new ApiError('Missing required fields', 400, 'MISSING_FIELDS');
     }
 
     const courseId = `course-${Date.now()}`;
@@ -108,7 +163,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ course: fullCourse });
   } catch (error) {
-    console.error('Error creating course:', error);
-    return NextResponse.json({ error: 'Failed to create course' }, { status: 500 });
+    console.error('[courses/POST]', error);
+    return handleApiError(error);
   }
 }

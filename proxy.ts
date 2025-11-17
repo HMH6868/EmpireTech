@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { LOCALE_COOKIE, defaultLocale, i18nConfig, type Locale } from './i18nConfig';
+import { apiLimiter, authLimiter } from './lib/rate-limit';
 
 const PUBLIC_FILE = /\.(.*)$/;
 
@@ -39,16 +40,110 @@ const getLocaleFromHeader = (request: NextRequest): Locale | null => {
 const detectLocale = (request: NextRequest): Locale =>
   getLocaleFromCookie(request) ?? getLocaleFromHeader(request) ?? defaultLocale;
 
+const getClientIp = (request: NextRequest): string => {
+  // Lấy IP từ headers (cho Vercel và các proxy khác)
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0]?.trim() || 'unknown';
+  }
+
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) {
+    return realIp;
+  }
+
+  return 'unknown';
+};
+
+const addSecurityHeaders = (response: NextResponse): NextResponse => {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Access-Control-Allow-Origin', 'https://empire-tech-pi.vercel.app');
+  return response;
+};
+
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Kiểm tra rate limit cho API routes
+  if (pathname.startsWith('/api')) {
+    const ip = getClientIp(request);
+
+    // Rate limit cho auth endpoints: 5 requests/15 phút
+    if (pathname.startsWith('/api/auth/')) {
+      const result = authLimiter.check(
+        `auth:${ip}`,
+        5,
+        15 * 60 * 1000 // 15 phút
+      );
+
+      if (!result.success) {
+        const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+        return addSecurityHeaders(
+          new NextResponse(
+            JSON.stringify({
+              error: 'Too many requests',
+              message: 'Vui lòng thử lại sau',
+            }),
+            {
+              status: 429,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-RateLimit-Limit': '5',
+                'X-RateLimit-Remaining': '0',
+                'Retry-After': retryAfter.toString(),
+              },
+            }
+          )
+        );
+      }
+
+      const response = NextResponse.next();
+      response.headers.set('X-RateLimit-Limit', '5');
+      response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
+      return addSecurityHeaders(response);
+    }
+
+    // Rate limit cho các API khác: 100 requests/phút
+    const result = apiLimiter.check(
+      `api:${ip}`,
+      100,
+      60 * 1000 // 1 phút
+    );
+
+    if (!result.success) {
+      const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+      return addSecurityHeaders(
+        new NextResponse(
+          JSON.stringify({
+            error: 'Too many requests',
+            message: 'Vui lòng thử lại sau',
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-RateLimit-Limit': '100',
+              'X-RateLimit-Remaining': '0',
+              'Retry-After': retryAfter.toString(),
+            },
+          }
+        )
+      );
+    }
+
+    const response = NextResponse.next();
+    response.headers.set('X-RateLimit-Limit', '100');
+    response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
+    return addSecurityHeaders(response);
+  }
+
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
     pathname.startsWith('/admin') ||
     PUBLIC_FILE.test(pathname)
   ) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   const hasLocalePrefix = i18nConfig.locales.some(
@@ -71,7 +166,7 @@ export default function proxy(request: NextRequest) {
     maxAge: 60 * 60 * 24 * 365,
   });
 
-  return response;
+  return addSecurityHeaders(response);
 }
 
 export const config = {
