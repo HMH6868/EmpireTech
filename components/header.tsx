@@ -69,14 +69,6 @@ export function Header() {
     return '/' + segments.join('/');
   }, [pathname]);
 
-  const activeIndex = useMemo(
-    () =>
-      navLinks.findIndex((link) =>
-        link.href === '/' ? normalizedPathname === '/' : normalizedPathname?.startsWith(link.href)
-      ),
-    [normalizedPathname]
-  );
-
   useEffect(() => {
     let isMounted = true;
 
@@ -153,10 +145,8 @@ export function Header() {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('[Header] Cart items:', data.items);
           // Count number of unique items, not total quantity
           const itemCount = data.items?.length || 0;
-          console.log('[Header] Total cart count:', itemCount);
           setCartCount(itemCount);
         }
       } catch (error) {
@@ -168,7 +158,6 @@ export function Header() {
 
     // Listen for cart update events
     const handleCartUpdate = () => {
-      console.log('[Header] Cart updated event received');
       fetchCartCount();
     };
     window.addEventListener('cartUpdated', handleCartUpdate);

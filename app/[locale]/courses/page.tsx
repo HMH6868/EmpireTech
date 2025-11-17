@@ -46,8 +46,9 @@ export default function CoursesPage() {
         setLoading(true);
         const response = await fetch('/api/courses');
         const data = await response.json();
-        if (data.courses) {
-          setCourses(data.courses);
+        // API returns 'items' not 'courses'
+        if (data.items) {
+          setCourses(data.items);
         }
       } catch (error) {
         console.error('Error fetching courses:', error);

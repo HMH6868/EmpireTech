@@ -24,10 +24,18 @@ import { useLanguage } from '@/hooks/use-locale';
 import { useToast } from '@/hooks/use-toast';
 // import { useTranslations } from '@/hooks/useTranslations';
 import { Spinner } from '@/components/ui/spinner';
-import { type AdminUser } from '@/lib/mock-data';
 import { createTranslator, getTranslationDictionary } from '@/lib/translations';
 import { Ban, CheckCircle, Eye, MoreHorizontal, Search, Shield, UserMinus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: 'admin' | 'user';
+  status: 'active' | 'banned';
+  createdAt: string;
+};
 
 export default function AdminUsersPage() {
   const [userList, setUserList] = useState<AdminUser[]>([]);

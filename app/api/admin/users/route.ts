@@ -1,10 +1,12 @@
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseRouteClient } from '@/lib/supabase/server';
 import { unstable_cache } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 const getCachedUsers = unstable_cache(
   async (page: number, perPage: number) => {
-    const supabase = await createSupabaseRouteClient();
+    // Use admin client without cookies for caching
+    const supabase = createSupabaseAdminClient();
 
     const offset = (page - 1) * perPage;
 
@@ -30,10 +32,11 @@ export async function GET(request: Request) {
   try {
     const supabase = await createSupabaseRouteClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    if (!session?.user?.id) {
+    if (authError || !user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -41,7 +44,7 @@ export async function GET(request: Request) {
     const { data: requesterProfile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (!requesterProfile || requesterProfile.role !== 'admin') {

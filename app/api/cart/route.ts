@@ -1,29 +1,24 @@
+import { getAuthenticatedUserServer } from '@/lib/auth-helpers';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
+    const user = await getAuthenticatedUserServer();
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = await createSupabaseServerClient();
+
     // Get or create cart
-    let { data: cart } = await supabase
-      .from('cart')
-      .select('id')
-      .eq('user_id', session.user.id)
-      .single();
+    let { data: cart } = await supabase.from('cart').select('id').eq('user_id', user.id).single();
 
     if (!cart) {
       const { data: newCart } = await supabase
         .from('cart')
-        .insert({ user_id: session.user.id })
+        .insert({ user_id: user.id })
         .select('id')
         .single();
       cart = newCart;
@@ -50,15 +45,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient();
+    const user = await getAuthenticatedUserServer();
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = await createSupabaseServerClient();
 
     const body = await request.json();
     const { item_id, item_type, variant_id, price_usd, price_vnd, quantity = 1 } = body;
@@ -68,16 +61,12 @@ export async function POST(request: Request) {
     }
 
     // Get or create cart
-    let { data: cart } = await supabase
-      .from('cart')
-      .select('id')
-      .eq('user_id', session.user.id)
-      .single();
+    let { data: cart } = await supabase.from('cart').select('id').eq('user_id', user.id).single();
 
     if (!cart) {
       const { data: newCart, error: cartError } = await supabase
         .from('cart')
-        .insert({ user_id: session.user.id })
+        .insert({ user_id: user.id })
         .select('id')
         .single();
 

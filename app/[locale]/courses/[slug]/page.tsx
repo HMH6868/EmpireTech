@@ -84,14 +84,13 @@ export default function CourseDetailPage() {
       const response = await fetch('/api/courses');
       const data = await response.json();
 
-      if (data.courses) {
-        const foundCourse = data.courses.find((c: Course) => c.slug === params.slug);
+      // API returns 'items' not 'courses'
+      if (data.items) {
+        const foundCourse = data.items.find((c: Course) => c.slug === params.slug);
         setCourse(foundCourse || null);
 
         if (foundCourse) {
-          const related = data.courses
-            .filter((c: Course) => c.slug !== foundCourse.slug)
-            .slice(0, 4);
+          const related = data.items.filter((c: Course) => c.slug !== foundCourse.slug).slice(0, 4);
           setRelatedCourses(related);
         }
       }

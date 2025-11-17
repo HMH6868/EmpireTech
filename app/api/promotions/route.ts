@@ -42,7 +42,6 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    console.log('📦 Received body:', body);
 
     const {
       code,
@@ -92,8 +91,6 @@ export async function POST(request: Request) {
       used_count: 0,
     };
 
-    console.log('💾 Inserting data:', insertData);
-
     const { data: promotion, error: promotionError } = await supabase
       .from('promotions')
       .insert(insertData)
@@ -101,11 +98,8 @@ export async function POST(request: Request) {
       .single();
 
     if (promotionError) {
-      console.error('❌ Supabase error:', promotionError);
       throw promotionError;
     }
-
-    console.log('✅ Created promotion:', promotion);
 
     return NextResponse.json({ promotion });
   } catch (error: any) {

@@ -10,11 +10,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Server-side guard: only allow users with role 'admin' to view the admin area
   const supabase = await createSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  // If there's no authenticated session, redirect to home
-  if (!session?.user?.id) {
+
+  if (authError || !user?.id) {
     redirect('/');
   }
 
@@ -22,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single();
 
   if (error || !profile || profile.role !== 'admin') {

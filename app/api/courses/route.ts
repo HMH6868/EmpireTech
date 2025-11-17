@@ -1,11 +1,21 @@
 import { ApiError, handleApiError } from '@/lib/errors';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
 import { NextResponse } from 'next/server';
 
+// Create a public Supabase client for cached queries (no cookies)
+const createPublicSupabaseClient = () => {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+};
+
 const getCachedCourses = unstable_cache(
   async (limit: number, cursor?: string) => {
-    const supabase = await createSupabaseServerClient();
+    // Use public client without cookies for caching
+    const supabase = createPublicSupabaseClient();
 
     let query = supabase
       .from('courses')
@@ -16,10 +26,14 @@ const getCachedCourses = unstable_cache(
         title_en,
         title_vi,
         thumbnail,
+        instructor,
         price_vnd,
         price_usd,
+        description_en,
+        description_vi,
         created_at,
-        images:course_images(image_url)
+        updated_at,
+        images:course_images(id, image_url, order_index)
       `
       )
       .order('created_at', { ascending: false })
@@ -60,11 +74,11 @@ export async function GET(request: Request) {
     // Lấy cursor cho trang tiếp theo
     const nextCursor = hasMore && items.length > 0 ? items[items.length - 1]?.created_at : null;
 
-    // Format images để chỉ lấy URL đầu tiên
+    // Format items - keep all fields including images
     const formattedItems = items.map((course: any) => ({
       ...course,
       thumbnail_image: course.images?.[0]?.image_url || course.thumbnail,
-      images: undefined, // Xóa field images gốc
+      // Keep images array for detail page
     }));
 
     return NextResponse.json({
@@ -84,17 +98,18 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseServerClient();
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    if (!session?.user?.id) {
+    if (authError || !user?.id) {
       throw new ApiError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (profile?.role !== 'admin') {

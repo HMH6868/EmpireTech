@@ -116,8 +116,9 @@ export default function HomePage() {
           setCategoriesWithProducts(categoriesWithProds);
         }
 
-        if (coursesData.courses) {
-          setCourses(coursesData.courses.slice(0, 3));
+        // API returns 'items' not 'courses'
+        if (coursesData.items) {
+          setCourses(coursesData.items.slice(0, 3));
         }
       } catch (error) {
         console.error('Error fetching data:', error);
