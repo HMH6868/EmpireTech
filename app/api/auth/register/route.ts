@@ -54,10 +54,10 @@ export async function POST(request: Request) {
 
     // Kiểm tra email trùng lặp trước khi gọi signUp (tiết kiệm quota)
     const { data: existingUser } = await supabase
-      .from('users')
+      .from('profiles')
       .select('id')
       .eq('email', sanitizedEmail)
-      .single();
+      .maybeSingle();
 
     if (existingUser) {
       throw new ApiError('Email đã được sử dụng', 400, 'EMAIL_EXISTS');

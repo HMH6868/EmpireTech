@@ -68,11 +68,40 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    const { full_name, avatar } = payload;
+    let { full_name, avatar } = payload;
+
+    // VALIDATE & SANITIZE full_name
+    if (full_name !== undefined) {
+      full_name = full_name.trim();
+      if (full_name.length < 2 || full_name.length > 50) {
+        return NextResponse.json(
+          { error: 'Full name must be between 2 and 50 characters' },
+          { status: 400 }
+        );
+      }
+      // Sanitize: remove dangerous characters
+      full_name = full_name.replace(/[<>&"']/g, '');
+    }
+
+    // VALIDATE avatar URL
+    if (avatar !== undefined && avatar !== null && avatar.length > 0) {
+      try {
+        const url = new URL(avatar);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 });
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid avatar URL format' }, { status: 400 });
+      }
+    }
+
+    const updateData: any = {};
+    if (full_name !== undefined) updateData.full_name = full_name;
+    if (avatar !== undefined) updateData.avatar = avatar;
 
     const { data, error } = await supabase
       .from('profiles')
-      .update({ full_name, avatar })
+      .update(updateData)
       .eq('id', session.user.id)
       .select();
 
