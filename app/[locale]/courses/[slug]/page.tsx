@@ -386,7 +386,16 @@ export default function CourseDetailPage() {
                       <ShoppingCart className="h-5 w-5" />
                       {locale === 'vi' ? 'Thêm vào giỏ' : 'Add to Cart'}
                     </Button>
-                    <Button size="lg" variant="outline" className="flex-1 bg-transparent">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="flex-1 bg-transparent"
+                      onClick={async () => {
+                        await handleEnroll();
+                        // Chuyển đến trang giỏ hàng sau khi thêm
+                        window.location.href = `/${locale}/cart`;
+                      }}
+                    >
                       {locale === 'vi' ? 'Đăng ký ngay' : 'Enroll Now'}
                     </Button>
                   </div>

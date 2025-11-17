@@ -2,11 +2,12 @@
 
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowRight, BookOpen, Minus, Plus, ShoppingBag, Trash2, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -104,7 +105,7 @@ export default function CartPage() {
               } else if (item.item_type === 'course') {
                 const courseRes = await fetch('/api/courses');
                 const courseData = await courseRes.json();
-                const course = courseData.courses?.find((c: any) => c.id === item.item_id);
+                const course = courseData.items?.find((c: any) => c.id === item.item_id);
 
                 if (course) {
                   details = {
@@ -267,7 +268,23 @@ export default function CartPage() {
                         : `/${locale}/courses/${item.details?.slug}`;
 
                     return (
-                      <Card key={item.id}>
+                      <Card key={item.id} className="relative">
+                        <Badge
+                          variant={item.item_type === 'account' ? 'default' : 'secondary'}
+                          className="absolute right-4 top-4 gap-1"
+                        >
+                          {item.item_type === 'account' ? (
+                            <>
+                              <User className="h-3 w-3" />
+                              {locale === 'vi' ? 'Tài khoản' : 'Account'}
+                            </>
+                          ) : (
+                            <>
+                              <BookOpen className="h-3 w-3" />
+                              {locale === 'vi' ? 'Khóa học' : 'Course'}
+                            </>
+                          )}
+                        </Badge>
                         <CardContent className="p-4 sm:p-6">
                           <div className="flex flex-col gap-4 sm:flex-row">
                             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
