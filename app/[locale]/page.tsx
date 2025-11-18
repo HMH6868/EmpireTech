@@ -12,13 +12,21 @@ import { useTranslations } from '@/hooks/useTranslations';
 import {
   ArrowRight,
   BookOpen,
+  Bot,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Cloud,
+  Gamepad2,
   Gift,
   GraduationCap,
+  Laptop,
+  Palette,
   Shield,
+  ShieldCheck,
   Sparkles,
+  Tv,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -76,6 +84,52 @@ const featureItems = [
   { key: 'instantDelivery', Icon: Zap, color: 'text-yellow-500' },
   { key: 'secure', Icon: Shield, color: 'text-green-500' },
   { key: 'support', Icon: Clock, color: 'text-blue-500' },
+] as const;
+
+const HERO_SPOTLIGHT_CARD_HEIGHT = 150;
+const HERO_SPOTLIGHT_GAP = 16; // matches gap-4 (1rem)
+
+const heroCategoryItems = [
+  { key: 'entertainment', label: { vi: 'Giải trí', en: 'Entertainment' }, slug: 'entertainment', Icon: Tv },
+  { key: 'work', label: { vi: 'Làm việc', en: 'Work' }, slug: 'productivity', Icon: Briefcase },
+  { key: 'learning', label: { vi: 'Học tập', en: 'Learning' }, slug: 'productivity', Icon: GraduationCap },
+  { key: 'steam', label: { vi: 'Game Steam', en: 'Steam games' }, slug: 'entertainment', Icon: Gamepad2 },
+
+] as const;
+
+const heroSpotlightItems = [
+  {
+    key: 'steamWallet',
+    badge: { vi: 'Steam', en: 'Steam' },
+    title: { vi: 'Nạp thẻ Wallet', en: 'Wallet top-up' },
+    subtitle: { vi: 'Siêu tiết kiệm', en: 'Super savings' },
+    slug: 'entertainment',
+    gradient: 'from-[#fef2ff] via-[#f4e8ff] to-white',
+  },
+  {
+    key: 'designSuite',
+    badge: { vi: 'Công cụ', en: 'Creative' },
+    title: { vi: 'Thiết kế đa dạng', en: 'Design suite' },
+    subtitle: { vi: 'Canva, Figma, Adobe', en: 'Canva, Figma, Adobe' },
+    slug: 'design-tools',
+    gradient: 'from-[#f2f7ff] via-[#fef3ff] to-white',
+  },
+  {
+    key: 'steamOffline',
+    badge: { vi: 'Steam', en: 'Steam' },
+    title: { vi: 'Tài khoản offline', en: 'Offline accounts' },
+    subtitle: { vi: 'Game bom tấn', en: 'Blockbusters' },
+    slug: 'entertainment',
+    gradient: 'from-[#fff8e4] via-[#fff2cc] to-white',
+  },
+  {
+    key: 'office',
+    badge: { vi: 'Office', en: 'Office' },
+    title: { vi: 'Microsoft Office', en: 'Microsoft Office' },
+    subtitle: { vi: 'Bản quyền chính chủ', en: 'Licensed access' },
+    slug: 'productivity',
+    gradient: 'from-[#f1f9ff] via-[#f4ecff] to-white',
+  },
 ] as const;
 
 export default function HomePage() {
@@ -156,6 +210,21 @@ export default function HomePage() {
   }, [banners.length]);
 
   const activeBanner = banners[currentBanner];
+  const resolveLabel = (label: { vi: string; en: string }) =>
+    locale === 'vi' ? label.vi : label.en;
+  const quickCategoryLinks = heroCategoryItems.map((item) => ({
+    ...item,
+    text: resolveLabel(item.label),
+    href: `/${locale}/accounts?category=${item.slug}`,
+  }));
+  const heroBannerTargetHeight = HERO_SPOTLIGHT_CARD_HEIGHT * 2 + HERO_SPOTLIGHT_GAP;
+  const heroSpotlightCards = heroSpotlightItems.map((item) => ({
+    ...item,
+    badgeText: resolveLabel(item.badge),
+    titleText: resolveLabel(item.title),
+    subtitleText: resolveLabel(item.subtitle),
+    href: `/${locale}/accounts?category=${item.slug}`,
+  }));
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -163,118 +232,229 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero Banner Carousel */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary/10 to-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-9">
-                <div className="h-[400px] lg:h-[500px]">
-                  <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-200/50 hover:shadow-xl transition-all cursor-pointer group h-full">
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${activeBanner.gradient} transition-all duration-1000`}
-                      style={{
-                        backgroundImage: activeBanner.bgPattern,
-                        backgroundBlendMode: 'overlay',
-                      }}
-                    >
-                      <div className="relative h-full flex flex-col justify-center px-8 lg:px-16">
-                        <Badge className="w-fit mb-4 bg-red-500 hover:bg-red-600 text-white border-0 px-6 py-2 text-base font-bold animate-pulse shadow-lg">
-                          {homeT(`banners.${activeBanner.key}Tag`)}
-                        </Badge>
-                        <h2 className="text-5xl lg:text-7xl font-black mb-4 text-foreground drop-shadow-2xl leading-tight">
+        <section className="relative bg-muted/20 py-8">
+          <div className="container mx-auto space-y-6 px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <aside className="lg:col-span-3">
+                <Card className="h-full rounded-3xl border border-border/40 bg-background shadow-xl">
+                  <div className="border-b border-border/60 px-6 py-5">
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      {locale === 'vi' ? 'Danh mục nhanh' : 'Quick categories'}
+                    </p>
+                    <p className="text-lg font-bold text-foreground">{homeT('hero.browseAccounts')}</p>
+                  </div>
+                  <ul className="grid grid-cols-2 gap-2.5 px-4 py-3 lg:block lg:p-0">
+                    {quickCategoryLinks.map(({ key, Icon, text, href }) => (
+                      <li
+                        key={key}
+                        className="overflow-hidden rounded-2xl bg-muted/40 lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0 lg:border-b lg:border-border/60 lg:first:border-t lg:last:border-b-0"
+                      >
+                        <Link
+                          href={href}
+                          className="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary/10 lg:rounded-none lg:px-5 lg:py-3"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:scale-105 group-hover:bg-primary/20">
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span>{text}</span>
+                          </span>
+                          <ArrowRight className="h-3 w-3 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </aside>
+
+              <div className="lg:col-span-6">
+                <Card
+                  className="relative h-full overflow-hidden rounded-3xl border-0 bg-slate-950 text-white shadow-2xl"
+                  style={{ minHeight: heroBannerTargetHeight }}
+                >
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r ${activeBanner.gradient} transition-all duration-1000`}
+                    style={{
+                      backgroundImage: activeBanner.bgPattern,
+                      backgroundBlendMode: 'overlay',
+                    }}
+                  />
+                  <div className="relative z-10 flex h-full flex-col justify-between gap-6 px-7 py-8 lg:px-10">
+                    <div className="space-y-3">
+                      <Badge className="w-fit bg-white/10 px-5 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-lg backdrop-blur">
+                        {homeT(`banners.${activeBanner.key}Tag`)}
+                      </Badge>
+                      <div className="space-y-3">
+                        <p className="text-base uppercase tracking-[0.4em] text-white/70">
+                          {locale === 'vi' ? 'Streaming ưu đãi' : 'Premium streaming deal'}
+                        </p>
+                        <h2 className="text-4xl font-black leading-tight text-white md:text-5xl lg:text-6xl">
                           {homeT(`banners.${activeBanner.key}Title`)}
                         </h2>
-                        <p className="text-3xl lg:text-5xl font-bold text-primary mb-8 drop-shadow-lg">
+                        <p className="text-2xl font-semibold text-primary md:text-3xl">
                           {homeT(`banners.${activeBanner.key}Subtitle`)}
                         </p>
-                        <div className="flex gap-4">
-                          <Link href={`/${locale}/accounts`}>
-                            <Button
-                              size="lg"
-                              className="gap-2 px-10 py-6 text-lg bg-primary hover:bg-primary/90 shadow-2xl hover:shadow-primary/50 transition-all hover:scale-105"
-                            >
-                              {homeT('hero.shopNow')}
-                              <ArrowRight className="h-6 w-6" />
-                            </Button>
-                          </Link>
-                        </div>
+                        <p className="text-base text-white/80 md:text-lg">
+                          {locale === 'vi'
+                            ? 'Chỉ từ 19K/ngày · Nội dung không giới hạn'
+                            : 'From $0.79/day · Unlimited content'}
+                        </p>
                       </div>
                     </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Link href={`/${locale}/accounts`}>
+                        <Button className="gap-2 rounded-full bg-primary px-8 py-5 text-base font-semibold shadow-lg transition hover:-translate-y-0.5 hover:bg-primary/90">
+                          {homeT('hero.shopNow')}
+                          <ArrowRight className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Link href={`/${locale}/accounts?category=${activeBanner.key}`}>
+                        <Button
+                          variant="outline"
+                          className="gap-2 rounded-full border-white/40 bg-white/10 px-8 py-5 text-base text-white transition hover:bg-white/20"
+                        >
+                          {locale === 'vi' ? 'Xem ưu đãi khác' : 'See more deals'}
+                          <ArrowRight className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
 
-                    <div className="absolute inset-y-0 left-4 z-20 flex items-center">
-                      <button
-                        aria-label="Previous banner"
-                        onClick={() =>
-                          setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length)
-                        }
-                        className="hidden group-hover:flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-transform shadow-lg"
-                      >
-                        <ChevronLeft className="h-5 w-5 text-primary" />
-                      </button>
-                    </div>
-                    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
-                      {banners.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentBanner(index)}
-                          className={`h-2.5 rounded-full transition-all ${
-                            currentBanner === index
-                              ? 'w-10 bg-primary shadow-lg'
-                              : 'w-2.5 bg-primary/40 hover:bg-primary/60'
-                          }`}
-                        />
-                      ))}
-                    </div>
+                  <div className="absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-4">
+                    <button
+                      aria-label={homeT('hero.previous')}
+                      onClick={() =>
+                        setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length)
+                      }
+                      className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/5 text-white transition hover:bg-white/20"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      aria-label={homeT('hero.next')}
+                      onClick={() => setCurrentBanner((prev) => (prev + 1) % banners.length)}
+                      className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-white/5 text-white transition hover:bg-white/20"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
 
-                    <div className="absolute inset-y-0 right-4 z-20 flex items-center">
+                  <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
+                    {banners.map((_, index) => (
                       <button
-                        aria-label="Next banner"
-                        onClick={() => setCurrentBanner((prev) => (prev + 1) % banners.length)}
-                        className="hidden group-hover:flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-transform shadow-lg"
-                      >
-                        <ChevronRight className="h-5 w-5 text-primary" />
-                      </button>
+                        key={index}
+                        onClick={() => setCurrentBanner(index)}
+                        className={`h-2 rounded-full transition-all ${
+                          currentBanner === index ? 'w-10 bg-white' : 'w-3 bg-white/40 hover:bg-white/60'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="absolute right-8 top-1/2 hidden -translate-y-1/2 md:flex">
+                    <div className="flex h-32 w-32 items-center justify-center rounded-3xl border border-white/10 bg-black/30 text-5xl font-black uppercase text-white shadow-2xl backdrop-blur">
+                      {activeBanner.key.charAt(0)}
                     </div>
-                  </Card>
-                </div>
+                  </div>
+                </Card>
               </div>
 
-              <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4 lg:col-span-3 lg:grid-cols-1">
                 <Link href={`/${locale}/accounts?category=vpn`}>
-                  <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-200/50 hover:shadow-xl hover:scale-105 transition-all cursor-pointer group h-full">
-                    <div className="p-6 h-full flex flex-col justify-between">
-                      <div>
-                        <Badge className="mb-3 bg-purple-500 hover:bg-purple-600 border-0 shadow-lg">
+                  <Card
+                    className="relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-[#f7ecff] via-[#f1e4ff] to-white p-6 shadow-xl transition hover:-translate-y-1"
+                    style={{ minHeight: HERO_SPOTLIGHT_CARD_HEIGHT }}
+                  >
+                    <div className="flex flex-col justify-between gap-4">
+                      <div className="space-y-2">
+                        <Badge className="w-fit bg-purple-500/90 px-4 text-white">
                           {homeT('sideBanners.vpnBadge')}
                         </Badge>
-                        <h3 className="text-2xl font-black mb-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-purple-500">
+                          {locale === 'vi' ? 'Ứng dụng' : 'Apps'}
+                        </p>
+                        <h3 className="text-2xl font-black text-slate-900">
                           {homeT('sideBanners.vpnTitle')}
                         </h3>
-                        <p className="text-sm text-muted-foreground font-semibold">
+                        <p className="text-sm font-semibold text-purple-700">
                           {homeT('sideBanners.vpnSubtitle')}
                         </p>
                       </div>
-                      <ChevronRight className="h-6 w-6 text-primary group-hover:translate-x-2 transition-transform" />
+                      <div className="flex flex-wrap gap-2">
+                        {['Nord', 'HMA', 'Express', 'Hotspot'].map((brand) => (
+                          <span
+                            key={brand}
+                            className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-purple-700 shadow-sm"
+                          >
+                            {brand}
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    <ChevronRight className="absolute right-6 top-6 h-6 w-6 text-purple-500" />
                   </Card>
                 </Link>
 
                 <Link href={`/${locale}/accounts?category=ai-tools`}>
-                  <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-200/50 hover:shadow-xl hover:scale-105 transition-all cursor-pointer group h-full">
-                    <div className="p-6 h-full flex flex-col justify-between">
-                      <div>
-                        <Badge className="mb-3 bg-blue-500 hover:bg-blue-600 border-0 shadow-lg">
+                  <Card
+                    className="relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-[#fff7dc] via-[#fff1d3] to-white p-6 shadow-xl transition hover:-translate-y-1"
+                    style={{ minHeight: HERO_SPOTLIGHT_CARD_HEIGHT }}
+                  >
+                    <div className="flex flex-col justify-between gap-4">
+                      <div className="space-y-2">
+                        <Badge className="w-fit bg-amber-500 px-4 text-white">
                           {homeT('sideBanners.aiBadge')}
                         </Badge>
-                        <h3 className="text-2xl font-black mb-2">{homeT('sideBanners.aiTitle')}</h3>
-                        <p className="text-sm text-muted-foreground font-semibold">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500">
+                          {locale === 'vi' ? 'Khám phá' : 'Explore'}
+                        </p>
+                        <h3 className="text-2xl font-black text-slate-900">{homeT('sideBanners.aiTitle')}</h3>
+                        <p className="text-sm font-semibold text-amber-600">
                           {homeT('sideBanners.aiSubtitle')}
                         </p>
                       </div>
-                      <ChevronRight className="h-6 w-6 text-primary group-hover:translate-x-2 transition-transform" />
+                      <div className="flex flex-wrap gap-2">
+                        {['Perplexity', 'ChatGPT', 'Copilot'].map((brand) => (
+                          <span
+                            key={brand}
+                            className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-amber-600 shadow-sm"
+                          >
+                            {brand}
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    <ChevronRight className="absolute right-6 top-6 h-6 w-6 text-amber-500" />
                   </Card>
                 </Link>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {heroSpotlightCards.map(
+                ({ key, badgeText, titleText, subtitleText, href, gradient }) => (
+                  <Card
+                    key={key}
+                    className={`relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br ${gradient} p-5 shadow-lg transition hover:-translate-y-1`}
+                    style={{ minHeight: HERO_SPOTLIGHT_CARD_HEIGHT }}
+                  >
+                    <div className="space-y-2">
+                      <Badge className="bg-white/80 px-3 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+                        {badgeText}
+                      </Badge>
+                      <h3 className="text-xl font-black text-slate-900">{titleText}</h3>
+                      <p className="text-sm font-semibold text-slate-600">{subtitleText}</p>
+                    </div>
+                    <Link
+                      href={href}
+                      className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary transition hover:gap-2"
+                    >
+                      {locale === 'vi' ? 'Mua ngay' : 'Shop now'}
+                      <ArrowRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Card>
+                ),
+              )}
             </div>
           </div>
         </section>
