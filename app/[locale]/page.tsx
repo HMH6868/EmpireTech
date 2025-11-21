@@ -89,22 +89,26 @@ const heroSpotlightItems = [
   {
     key: 'designSuite',
     slug: 'design-tools',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121c5bb00c6dfe7643337f2e036ede7f09a.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121c5bb00c6dfe7643337f2e036ede7f09a.jpg',
     imageUrlEn:
       'https://sf-static.upanhlaylink.com/img/image_20251121b4a328ad8e70986e2d62157ee08d976a.jpg',
   },
   {
     key: 'steamOffline',
     slug: 'entertainment',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_202511219d90e4a6cd153af35af6c4f1cd9568b5.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_202511219d90e4a6cd153af35af6c4f1cd9568b5.jpg',
     imageUrlEn:
       'https://sf-static.upanhlaylink.com/img/image_202511211f1078b1a2278fe11f731df4f3e3393e.jpg',
   },
   {
     key: 'office',
     slug: 'productivity',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121811e11d27229b79f2b950eaa44aa2a40.jpg',
-    imageUrlEn: 'https://sf-static.upanhlaylink.com/img/image_202511218539fcf91c8ee7a2e6c281220b1d299f.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121811e11d27229b79f2b950eaa44aa2a40.jpg',
+    imageUrlEn:
+      'https://sf-static.upanhlaylink.com/img/image_202511218539fcf91c8ee7a2e6c281220b1d299f.jpg',
   },
 ] as const;
 
@@ -112,14 +116,16 @@ const sideBannerItems = [
   {
     key: 'vpn',
     slug: 'vpn',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121bd46607d24cfde13fdf6a4a213f21864.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121bd46607d24cfde13fdf6a4a213f21864.jpg',
     imageUrlEn:
       'https://sf-static.upanhlaylink.com/img/image_20251121a198af346a6b584500a82b1fd222bba9.jpg',
   },
   {
     key: 'ai-tools',
     slug: 'ai-tools',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_2025112181937ac8f1582015cccaeb573b7018a6.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_2025112181937ac8f1582015cccaeb573b7018a6.jpg',
     imageUrlEn:
       'https://sf-static.upanhlaylink.com/img/image_20251121ee3d3201cdacf93868611f49d52dc42e.jpg',
   },
@@ -138,33 +144,42 @@ const banners = [
   {
     key: 'netflix',
     href: '/accounts/netflix',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121a3624400c665a609c4d7b6cef57e9d24.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121a3624400c665a609c4d7b6cef57e9d24.jpg',
     imageUrlEn:
       'https://sf-static.upanhlaylink.com/img/image_20251121282155ab4dda5151e90c116239ddf7eb.jpg',
   },
   {
     key: 'group',
     href: 'https://i.imgur.com/yDOGrcq.jpeg',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121fd1db5588dd76b825a8c35e525f0edbe.jpg',
-    imageUrlEn: 'https://sf-static.upanhlaylink.com/img/image_20251121e22c4b4d6eca02d1b44c271dcdd355d6.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121fd1db5588dd76b825a8c35e525f0edbe.jpg',
+    imageUrlEn:
+      'https://sf-static.upanhlaylink.com/img/image_20251121e22c4b4d6eca02d1b44c271dcdd355d6.jpg',
   },
   {
     key: 'youtube',
     href: '/accounts/youtube',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121b26651305e0596c99d67472765b5d76e.jpg',
-    imageUrlEn: 'https://sf-static.upanhlaylink.com/img/image_20251121d8dff4472ab613644fb2da6c53d8aeac.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121b26651305e0596c99d67472765b5d76e.jpg',
+    imageUrlEn:
+      'https://sf-static.upanhlaylink.com/img/image_20251121d8dff4472ab613644fb2da6c53d8aeac.jpg',
   },
   {
     key: 'virus',
     href: '/accounts/virus',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121d2d4abebd79c4fbed47daa49ea64da49.jpg',
-    imageUrlEn: 'https://sf-static.upanhlaylink.com/img/image_202511214d5914330218c88640d205ff1618b4bc.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121d2d4abebd79c4fbed47daa49ea64da49.jpg',
+    imageUrlEn:
+      'https://sf-static.upanhlaylink.com/img/image_202511214d5914330218c88640d205ff1618b4bc.jpg',
   },
   {
     key: 'capcut',
     href: '/accounts/capcut',
-    imageUrl: 'https://sf-static.upanhlaylink.com/img/image_20251121c1cdc896678cf6ca38c35057dfdcc4f4.jpg',
-    imageUrlEn: 'https://sf-static.upanhlaylink.com/img/image_202511216db8ab0363e2c275f9f43deff344c01f.jpg',
+    imageUrl:
+      'https://sf-static.upanhlaylink.com/img/image_20251121c1cdc896678cf6ca38c35057dfdcc4f4.jpg',
+    imageUrlEn:
+      'https://sf-static.upanhlaylink.com/img/image_202511216db8ab0363e2c275f9f43deff344c01f.jpg',
   },
 ] as const;
 
@@ -431,7 +446,7 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {categoriesWithProducts
                     .flatMap((cat) => cat.products)
                     .slice(0, 6)
@@ -490,7 +505,7 @@ export default function HomePage() {
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                     {category.products.map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}

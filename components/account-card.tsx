@@ -113,18 +113,18 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {/* Content */}
       <div className="flex flex-col gap-1.5 px-1 pb-1">
-        <h3 className="line-clamp-1 text-base font-medium text-foreground group-hover:text-primary">
+        <h3 className="line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary">
           {productName}
         </h3>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-lg font-bold text-foreground">
             {price > 0 ? formatCurrency(price, { currency }) : 'Contact'}
           </span>
 
           {originalPrice && originalPrice > price && (
             <>
-              <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/70">
+              <span className="text-xs text-muted-foreground line-through decoration-muted-foreground/70">
                 {formatCurrency(originalPrice, { currency })}
               </span>
               <span className="rounded bg-[#E91E63] px-1.5 py-0.5 text-xs font-bold text-white">

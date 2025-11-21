@@ -35,8 +35,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         `
         *,
         category:categories(id, name_en, name_vi, slug),
-        images:account_images(id, image_url, order_index),
-        variants:account_variants(*)
+        images:account_images(id, image_url, locale, order_index),
+        variants:account_variants(*, images:variant_images(*))
       `
       )
       .eq('id', id)
@@ -99,18 +99,62 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     // Cập nhật variants
     if (variants && variants.length > 0) {
-      await supabase.from('account_variants').delete().eq('account_id', id);
+      // Delete existing variants
+      const { error: deleteError } = await supabase
+        .from('account_variants')
+        .delete()
+        .eq('account_id', id);
 
-      const variantsToInsert = variants.map((variant: any, index: number) => {
-        const { id: varId, created_at, account_id, ...variantData } = variant;
-        return {
-          id: `${id}-var-${index}-${Date.now()}`,
+      if (deleteError) {
+        console.error('Error deleting variants:', deleteError);
+        return NextResponse.json(
+          { error: `Failed to delete variants: ${deleteError.message}` },
+          { status: 500 }
+        );
+      }
+
+      for (let index = 0; index < variants.length; index++) {
+        const variant = variants[index];
+        const { id: varId, created_at, account_id, image, images, ...variantData } = variant;
+        const variantId = `${id}-var-${index}-${Date.now()}`;
+
+        // Insert variant
+        const { error: variantError } = await supabase.from('account_variants').insert({
+          id: variantId,
           ...variantData,
           account_id: id,
-        };
-      });
+        });
 
-      await supabase.from('account_variants').insert(variantsToInsert);
+        if (variantError) {
+          console.error('Error inserting variant:', variantError);
+          return NextResponse.json(
+            { error: `Failed to insert variant: ${variantError.message}` },
+            { status: 500 }
+          );
+        }
+
+        // Insert variant images if any
+        if (images?.length > 0) {
+          const variantImagesToInsert = images.map((img: any) => ({
+            variant_id: variantId,
+            image_url: img.image_url,
+            locale: img.locale || 'vi',
+            order_index: img.order_index ?? 0,
+          }));
+
+          const { error: imagesError } = await supabase
+            .from('variant_images')
+            .insert(variantImagesToInsert);
+
+          if (imagesError) {
+            console.error('Error inserting variant images:', imagesError);
+            return NextResponse.json(
+              { error: `Failed to insert variant images: ${imagesError.message}` },
+              { status: 500 }
+            );
+          }
+        }
+      }
     }
 
     // Cập nhật gallery images
@@ -118,10 +162,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       await supabase.from('account_images').delete().eq('account_id', id);
 
       if (gallery_images.length > 0) {
-        const imagesToInsert = gallery_images.map((imageUrl: string, index: number) => ({
+        const imagesToInsert = gallery_images.map((img: any) => ({
           account_id: id,
-          image_url: imageUrl,
-          order_index: index,
+          image_url: typeof img === 'string' ? img : img.image_url,
+          locale: typeof img === 'string' ? 'vi' : img.locale || 'vi',
+          order_index:
+            typeof img === 'string'
+              ? gallery_images.indexOf(img)
+              : img.order_index ?? gallery_images.indexOf(img),
         }));
 
         await supabase.from('account_images').insert(imagesToInsert);
@@ -151,12 +199,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { data: updatedVariants } = await supabase
       .from('account_variants')
-      .select('*')
+      .select('*, images:variant_images(*)')
       .eq('account_id', id);
 
     const { data: images } = await supabase
       .from('account_images')
-      .select('id, image_url, order_index')
+      .select('id, image_url, locale, order_index')
       .eq('account_id', id);
 
     return NextResponse.json({

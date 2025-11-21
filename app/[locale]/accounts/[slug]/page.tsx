@@ -46,6 +46,7 @@ type Account = {
   images?: Array<{
     id: string;
     image_url: string;
+    locale: string;
     order_index: number;
   }>;
   variants?: Array<{
@@ -60,6 +61,12 @@ type Account = {
     image?: string;
     stock: boolean;
     is_default: boolean;
+    images?: Array<{
+      id: string;
+      image_url: string;
+      locale: string;
+      order_index: number;
+    }>;
   }>;
 };
 
@@ -189,19 +196,58 @@ export default function ProductDetailPage() {
       : 'out-of-stock'
     : product.inventory_status;
 
-  // Xây dựng gallery: Nếu variant có ảnh, đặt ảnh variant lên đầu
-  const variantImage = selectedVariant?.image;
-  const productGalleryImages =
-    product.images && product.images.length > 0
-      ? product.images.sort((a, b) => a.order_index - b.order_index).map((img) => img.image_url)
-      : product.image
-      ? [product.image]
-      : ['/placeholder.svg'];
+  // Xây dựng gallery
+  // 1. Get variant specific images (localized)
+  const variantImagesRaw = selectedVariant?.images || [];
+  const variantImagesLocalized = variantImagesRaw
+    .filter((img) => img.locale === locale)
+    .sort((a, b) => a.order_index - b.order_index)
+    .map((img) => img.image_url);
 
-  // Nếu variant có ảnh riêng, đặt lên đầu gallery
-  const galleryImages = variantImage
-    ? [variantImage, ...productGalleryImages.filter((img) => img !== variantImage)]
-    : productGalleryImages;
+  // Fallback to 'vi' if no localized images for variant
+  const variantImages =
+    variantImagesLocalized.length > 0
+      ? variantImagesLocalized
+      : variantImagesRaw
+          .filter((img) => img.locale === 'vi')
+          .sort((a, b) => a.order_index - b.order_index)
+          .map((img) => img.image_url);
+
+  // If variant has legacy single image and no new images, use it
+  if (variantImages.length === 0 && selectedVariant?.image) {
+    variantImages.push(selectedVariant.image);
+  }
+
+  // 2. Get product level images (localized)
+  const productImagesRaw = product.images || [];
+  const productImagesLocalized = productImagesRaw
+    .filter((img) => img.locale === locale)
+    .sort((a, b) => a.order_index - b.order_index)
+    .map((img) => img.image_url);
+
+  const productGalleryImages =
+    productImagesLocalized.length > 0
+      ? productImagesLocalized
+      : productImagesRaw
+          .filter((img) => img.locale === 'vi')
+          .sort((a, b) => a.order_index - b.order_index)
+          .map((img) => img.image_url);
+
+  // Fallback to product main image if no gallery images
+  if (productGalleryImages.length === 0 && product.image) {
+    productGalleryImages.push(product.image);
+  }
+
+  // 3. Combine: Variant images first, then product images (deduplicated)
+  const galleryImages = [
+    ...variantImages,
+    ...productGalleryImages.filter((img) => !variantImages.includes(img)),
+  ];
+
+  // Final fallback
+  if (galleryImages.length === 0) {
+    galleryImages.push('/placeholder.svg');
+  }
 
   const descriptionContent =
     (locale === 'vi' ? product.description_vi : product.description_en) || '';
@@ -271,22 +317,46 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* Product Image with Gallery */}
               <div className="space-y-4">
-                <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
+                <div className="group relative aspect-video overflow-hidden rounded-2xl bg-muted">
                   <Image
                     src={galleryImages[currentImageIndex] || '/placeholder.svg'}
                     alt={productName}
                     fill
                     className="object-cover"
                   />
+                  {galleryImages.length > 1 && (
+                    <div className="absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-2 opacity-100 transition-opacity duration-300 lg:opacity-0 lg:px-4 lg:group-hover:opacity-100">
+                      <button
+                        aria-label={locale === 'vi' ? 'Ảnh trước' : 'Previous image'}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          prevImage();
+                        }}
+                        className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/30 lg:h-14 lg:w-14"
+                      >
+                        <ChevronLeft className="h-5 w-5 lg:h-7 lg:w-7" />
+                      </button>
+                      <button
+                        aria-label={locale === 'vi' ? 'Ảnh tiếp theo' : 'Next image'}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          nextImage();
+                        }}
+                        className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/30 lg:h-14 lg:w-14"
+                      >
+                        <ChevronRight className="h-5 w-5 lg:h-7 lg:w-7" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 {galleryImages.length > 1 && (
                   <div className="flex items-center gap-2">
-                    <div className="grid flex-1 grid-cols-4 gap-2">
-                      {galleryImages.slice(0, 3).map((img, idx) => (
+                    <div className="grid flex-1 grid-cols-5 gap-2">
+                      {galleryImages.slice(0, 4).map((img, idx) => (
                         <button
                           key={idx}
                           onClick={() => setCurrentImageIndex(idx)}
-                          className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                          className={`relative aspect-video overflow-hidden rounded-lg border-2 transition-all ${
                             currentImageIndex === idx ? 'border-primary' : 'border-transparent'
                           }`}
                         >
@@ -298,12 +368,12 @@ export default function ProductDetailPage() {
                           />
                         </button>
                       ))}
-                      {galleryImages.length > 3 && (
+                      {galleryImages.length > 4 && (
                         <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
                           <DialogTrigger asChild>
-                            <button className="relative aspect-square overflow-hidden rounded-lg border-2 border-transparent bg-muted/50 transition-all hover:border-primary">
+                            <button className="relative aspect-video overflow-hidden rounded-lg border-2 border-transparent bg-muted/50 transition-all hover:border-primary">
                               <div className="flex h-full items-center justify-center text-sm font-medium">
-                                +{galleryImages.length - 3} {locale === 'vi' ? 'ảnh' : 'more'}
+                                +{galleryImages.length - 4} {locale === 'vi' ? 'ảnh' : 'more'}
                               </div>
                             </button>
                           </DialogTrigger>
@@ -390,20 +460,21 @@ export default function ProductDetailPage() {
 
                 <div className="mt-8 space-y-4">
                   <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-bold">
+                      {formatCurrency(currentPrice, { currency })}
+                    </p>
                     {currentOriginalPrice && (
                       <p className="text-xl text-muted-foreground line-through">
                         {formatCurrency(currentOriginalPrice, { currency })}
                       </p>
                     )}
-                    <p className="text-4xl font-bold">
-                      {formatCurrency(currentPrice, { currency })}
-                    </p>
                     {currentOriginalPrice && (
                       <Badge variant="destructive" className="text-xs">
+                        {locale === 'vi' ? 'GIẢM ' : 'OFF '}
                         {Math.round(
                           ((currentOriginalPrice - currentPrice) / currentOriginalPrice) * 100
                         )}
-                        %{locale === 'vi' ? ' GIẢM' : ' OFF'}
+                        %
                       </Badge>
                     )}
                   </div>
@@ -433,30 +504,32 @@ export default function ProductDetailPage() {
                         {locale === 'vi' ? 'Chọn gói' : 'Select Variant'}
                       </Label>
                       <div className="flex flex-wrap gap-2">
-                        {product.variants.map((variant) => (
-                          <Button
-                            key={variant.id}
-                            variant={selectedVariant?.id === variant.id ? 'default' : 'outline'}
-                            className="h-auto flex-col items-start gap-1 px-4 py-3"
-                            onClick={() => setSelectedVariant(variant)}
-                            disabled={!variant.stock}
-                          >
-                            <span className="font-semibold">
-                              {locale === 'vi' ? variant.name_vi : variant.name_en}
-                            </span>
-                            <span className="text-xs">
-                              {formatCurrency(
-                                priceKey === 'vnd' ? variant.price_vnd : variant.price_usd,
-                                { currency }
-                              )}
-                            </span>
-                            {!variant.stock && (
-                              <span className="text-xs text-muted-foreground">
-                                {locale === 'vi' ? '(Hết hàng)' : '(Out of stock)'}
+                        {[...product.variants]
+                          .sort((a, b) => {
+                            // Sort by price: lowest first based on current currency
+                            const priceA = priceKey === 'vnd' ? a.price_vnd : a.price_usd;
+                            const priceB = priceKey === 'vnd' ? b.price_vnd : b.price_usd;
+                            return priceA - priceB;
+                          })
+                          .map((variant) => (
+                            <Button
+                              key={variant.id}
+                              variant={selectedVariant?.id === variant.id ? 'default' : 'outline'}
+                              className="h-auto flex-col items-start gap-1 px-4 py-3"
+                              onClick={() => setSelectedVariant(variant)}
+                              disabled={!variant.stock}
+                            >
+                              <span className="font-semibold">
+                                {locale === 'vi' ? variant.name_vi : variant.name_en}
                               </span>
-                            )}
-                          </Button>
-                        ))}
+
+                              {!variant.stock && (
+                                <span className="text-xs text-muted-foreground">
+                                  {locale === 'vi' ? '(Hết hàng)' : '(Out of stock)'}
+                                </span>
+                              )}
+                            </Button>
+                          ))}
                       </div>
                     </div>
                   )}

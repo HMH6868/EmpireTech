@@ -12,8 +12,8 @@ export async function GET(request: Request) {
         `
         *,
         category:categories(id, name_en, name_vi, slug),
-        images:account_images(id, image_url, order_index),
-        variants:account_variants(*)
+        images:account_images(id, image_url, locale, order_index),
+        variants:account_variants(*, images:variant_images(*))
       `
       )
       .order('created_at', { ascending: false });
@@ -68,24 +68,41 @@ export async function POST(request: Request) {
 
     // Thêm variants
     if (variants?.length > 0) {
-      const variantsToInsert = variants.map((variant: any, index: number) => {
-        const { id, created_at, ...variantData } = variant;
-        return {
-          id: `${accountId}-var-${index}`,
+      for (let index = 0; index < variants.length; index++) {
+        const variant = variants[index];
+        const { id, created_at, image, images, ...variantData } = variant;
+        const variantId = `${accountId}-var-${index}`;
+
+        // Insert variant
+        await supabase.from('account_variants').insert({
+          id: variantId,
           ...variantData,
           account_id: accountId,
-        };
-      });
+        });
 
-      await supabase.from('account_variants').insert(variantsToInsert);
+        // Insert variant images if any
+        if (images?.length > 0) {
+          const variantImagesToInsert = images.map((img: any) => ({
+            variant_id: variantId,
+            image_url: img.image_url,
+            locale: img.locale || 'vi',
+            order_index: img.order_index ?? 0,
+          }));
+          await supabase.from('variant_images').insert(variantImagesToInsert);
+        }
+      }
     }
 
     // Thêm gallery images
     if (gallery_images?.length > 0) {
-      const imagesToInsert = gallery_images.map((imageUrl: string, index: number) => ({
+      const imagesToInsert = gallery_images.map((img: any) => ({
         account_id: accountId,
-        image_url: imageUrl,
-        order_index: index,
+        image_url: typeof img === 'string' ? img : img.image_url,
+        locale: typeof img === 'string' ? 'vi' : img.locale || 'vi',
+        order_index:
+          typeof img === 'string'
+            ? gallery_images.indexOf(img)
+            : img.order_index ?? gallery_images.indexOf(img),
       }));
 
       await supabase.from('account_images').insert(imagesToInsert);
@@ -121,7 +138,7 @@ export async function POST(request: Request) {
 
     const { data: images } = await supabase
       .from('account_images')
-      .select('id, image_url, order_index')
+      .select('id, image_url, locale, order_index')
       .eq('account_id', accountId);
 
     return NextResponse.json(

@@ -40,14 +40,26 @@ CREATE TABLE IF NOT EXISTS accounts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ===== 4. ACCOUNT_IMAGES TABLE =====
+-- ACCOUNT IMAGES TABLE
 CREATE TABLE IF NOT EXISTS account_images (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   account_id TEXT REFERENCES accounts(id) ON DELETE CASCADE,
   image_url TEXT NOT NULL,
+  locale TEXT NOT NULL DEFAULT 'vi', -- NGÔN NGỮ ẢNH
   order_index INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Chỉ cho phép 2 giá trị vi | en (nếu sau này bạn thêm JA/KR chỉ cần cập nhật lại CHECK)
+ALTER TABLE account_images
+ADD CONSTRAINT account_images_locale_check
+  CHECK (locale IN ('vi', 'en'));
+
+-- INDEX TỐI ƯU QUERY THEO NGÔN NGỮ
+CREATE INDEX IF NOT EXISTS idx_account_images_locale
+ON account_images(account_id, locale, order_index);
+
 
 -- ===== 5. ACCOUNT_VARIANTS TABLE =====
 CREATE TABLE IF NOT EXISTS account_variants (
@@ -65,6 +77,23 @@ CREATE TABLE IF NOT EXISTS account_variants (
   is_default BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS variant_images (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  variant_id TEXT REFERENCES account_variants(id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  locale TEXT NOT NULL DEFAULT 'vi',
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE variant_images
+ADD CONSTRAINT variant_images_locale_check
+  CHECK (locale IN ('vi', 'en'));
+
+CREATE INDEX IF NOT EXISTS idx_variant_images_locale
+ON variant_images(variant_id, locale, order_index);
+
 
 -- ===== 6. COURSES TABLE =====
 CREATE TABLE IF NOT EXISTS courses (
@@ -632,6 +661,17 @@ CREATE POLICY "Public can read account variants"
 
 CREATE POLICY "Admin can manage account variants"
   ON account_variants FOR ALL
+  USING (is_admin());
+
+-- VARIANT IMAGES POLICIES
+ALTER TABLE variant_images ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can read variant images"
+  ON variant_images FOR SELECT
+  TO public USING (true);
+
+CREATE POLICY "Admin can manage variant images"
+  ON variant_images FOR ALL
   USING (is_admin());
 
 -- COURSES POLICIES

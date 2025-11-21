@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { Edit, Loader2, Plus, Search, Trash2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -50,6 +50,7 @@ type Account = {
   images?: Array<{
     id: string;
     image_url: string;
+    locale: string;
     order_index: number;
   }>;
   variants?: Array<{
@@ -65,6 +66,12 @@ type Account = {
     image?: string;
     stock: boolean;
     is_default: boolean;
+    images?: Array<{
+      id?: string;
+      image_url: string;
+      locale: string;
+      order_index: number;
+    }>;
   }>;
 };
 
@@ -88,6 +95,7 @@ export default function AdminAccountsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [variants, setVariants] = useState<Account['variants']>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // State để lưu dữ liệu form
@@ -105,7 +113,9 @@ export default function AdminAccountsPage() {
   });
 
   // State cho gallery images
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<
+    Array<{ image_url: string; locale: string; order_index: number }>
+  >([]);
 
   // State cho delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -177,7 +187,13 @@ export default function AdminAccountsPage() {
   const handleEditProduct = (account: Account) => {
     setEditingAccount(account);
     setVariants(account.variants || []);
-    setGalleryImages(account.images?.map((img) => img.image_url) || []);
+    setGalleryImages(
+      account.images?.map((img, idx) => ({
+        image_url: img.image_url,
+        locale: img.locale || 'vi',
+        order_index: idx,
+      })) || []
+    );
     setFormData({
       name_en: account.name_en,
       name_vi: account.name_vi,
@@ -235,6 +251,7 @@ export default function AdminAccountsPage() {
         image: '',
         stock: true,
         is_default: false,
+        images: [],
       },
     ]);
   };
@@ -252,6 +269,10 @@ export default function AdminAccountsPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Prevent spam clicking
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const accountData = {
       slug: formData.slug,
       name_en: formData.name_en,
@@ -264,7 +285,7 @@ export default function AdminAccountsPage() {
       delivery_type_en: formData.delivery_en,
       delivery_type_vi: formData.delivery_vi,
       variants,
-      gallery_images: galleryImages.filter((url) => url.trim() !== ''), // Lọc URL rỗng
+      gallery_images: galleryImages.filter((img) => img.image_url.trim() !== ''),
     };
 
     try {
@@ -324,6 +345,8 @@ export default function AdminAccountsPage() {
     } catch (error) {
       console.error('Lỗi khi lưu sản phẩm:', error);
       toast.error('Có lỗi xảy ra khi lưu sản phẩm');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -471,17 +494,37 @@ export default function AdminAccountsPage() {
                     <div className="grid gap-2">
                       <Label>Thư viện ảnh (Gallery)</Label>
                       <div className="space-y-2">
-                        {galleryImages.map((imageUrl, index) => (
+                        {galleryImages.map((img, index) => (
                           <div key={index} className="flex gap-2">
                             <Input
                               placeholder={`URL ảnh ${index + 1}`}
-                              value={imageUrl}
+                              value={img.image_url}
                               onChange={(e) => {
                                 const newImages = [...galleryImages];
-                                newImages[index] = e.target.value;
+                                newImages[index] = {
+                                  ...newImages[index],
+                                  image_url: e.target.value,
+                                };
                                 setGalleryImages(newImages);
                               }}
+                              className="flex-1"
                             />
+                            <Select
+                              value={img.locale}
+                              onValueChange={(value) => {
+                                const newImages = [...galleryImages];
+                                newImages[index] = { ...newImages[index], locale: value };
+                                setGalleryImages(newImages);
+                              }}
+                            >
+                              <SelectTrigger className="w-24">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vi">VI</SelectItem>
+                                <SelectItem value="en">EN</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <Button
                               type="button"
                               variant="outline"
@@ -498,7 +541,12 @@ export default function AdminAccountsPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setGalleryImages([...galleryImages, ''])}
+                          onClick={() =>
+                            setGalleryImages([
+                              ...galleryImages,
+                              { image_url: '', locale: 'vi', order_index: galleryImages.length },
+                            ])
+                          }
                           className="w-full"
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -506,7 +554,8 @@ export default function AdminAccountsPage() {
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Thêm nhiều ảnh để hiển thị trong gallery sản phẩm
+                        Thêm nhiều ảnh cho Gallery. Chọn VI (Tiếng Việt) hoặc EN (Tiếng Anh) cho mỗi
+                        ảnh.
                       </p>
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -636,22 +685,88 @@ export default function AdminAccountsPage() {
                                       placeholder="PRODUCT-1M"
                                       value={variant.sku}
                                       onChange={(e) =>
-                                        handleUpdateVariant(index, 'sku', e.target.value)
+                                        handleUpdateVariant(
+                                          index,
+                                          'sku',
+                                          e.target.value.toUpperCase()
+                                        )
                                       }
-                                      className="h-9"
+                                      className="h-9 uppercase"
                                     />
                                   </div>
-                                  <div className="grid gap-1.5">
-                                    <Label className="text-xs">URL hình ảnh</Label>
-                                    <Input
-                                      placeholder="/images/products/chatgpt-plus/main.png"
-                                      value={variant.image || ''}
-                                      onChange={(e) =>
-                                        handleUpdateVariant(index, 'image', e.target.value)
-                                      }
-                                      className="h-9"
-                                    />
-                                  </div>
+                                </div>
+                                <Label className="text-xs">Hình ảnh biến thể (Localized)</Label>
+                                <div className="space-y-2">
+                                  {(variant.images || []).map((img, imgIndex) => (
+                                    <div key={imgIndex} className="flex gap-2">
+                                      <Input
+                                        placeholder="URL hình ảnh"
+                                        value={img.image_url}
+                                        onChange={(e) => {
+                                          const newImages = [...(variant.images || [])];
+                                          newImages[imgIndex] = {
+                                            ...newImages[imgIndex],
+                                            image_url: e.target.value,
+                                          };
+                                          handleUpdateVariant(index, 'images', newImages);
+                                        }}
+                                        className="h-9 flex-1"
+                                      />
+                                      <Select
+                                        value={img.locale}
+                                        onValueChange={(value) => {
+                                          const newImages = [...(variant.images || [])];
+                                          newImages[imgIndex] = {
+                                            ...newImages[imgIndex],
+                                            locale: value,
+                                          };
+                                          handleUpdateVariant(index, 'images', newImages);
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-9 w-20">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="vi">VI</SelectItem>
+                                          <SelectItem value="en">EN</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-9 w-9"
+                                        onClick={() => {
+                                          const newImages = (variant.images || []).filter(
+                                            (_, i) => i !== imgIndex
+                                          );
+                                          handleUpdateVariant(index, 'images', newImages);
+                                        }}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const newImages = [
+                                        ...(variant.images || []),
+                                        {
+                                          image_url: '',
+                                          locale: 'vi',
+                                          order_index: (variant.images || []).length,
+                                        },
+                                      ];
+                                      handleUpdateVariant(index, 'images', newImages);
+                                    }}
+                                    className="w-full h-8 text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-2" />
+                                    Thêm ảnh biến thể
+                                  </Button>
                                 </div>
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                   <div className="grid gap-1.5">
@@ -802,10 +917,24 @@ export default function AdminAccountsPage() {
                 </Tabs>
 
                 <DialogFooter className="mt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={isSubmitting}
+                  >
                     Hủy
                   </Button>
-                  <Button type="submit">{editingAccount ? 'Cập nhật' : 'Tạo'} sản phẩm</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {editingAccount ? 'Đang cập nhật...' : 'Đang tạo...'}
+                      </>
+                    ) : (
+                      <>{editingAccount ? 'Cập nhật' : 'Tạo'} sản phẩm</>
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -854,12 +983,13 @@ export default function AdminAccountsPage() {
                     <tr key={account.id} className="border-b border-border last:border-0">
                       <td className="py-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-muted">
+                          <div className="relative aspect-video w-16 overflow-hidden rounded-xl bg-muted">
                             <Image
                               src={account.image || '/placeholder.svg'}
                               alt={account.name_vi || account.slug}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           </div>
                           <span className="text-sm font-medium">

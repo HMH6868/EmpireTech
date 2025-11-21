@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
+import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -36,40 +35,40 @@ export function CourseCard({ course }: CourseCardProps) {
   const price = currency === 'vnd' ? course.price_vnd : course.price_usd;
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-lg">
-      <Link href={`/${locale}/courses/${course.slug}`}>
-        <div className="relative aspect-video overflow-hidden bg-muted">
-          <Image
-            src={course.thumbnail || '/placeholder.svg'}
-            alt={title}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
+    <Link
+      href={`/${locale}/courses/${course.slug}`}
+      className="group flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-3 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+    >
+      {/* Image Container */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-muted/20">
+        <Image
+          src={course.thumbnail || '/placeholder.svg'}
+          alt={title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+
+        {/* Optional: Add badges here if needed, e.g. "New" or "Bestseller" */}
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col gap-1.5 px-1 pb-1">
+        <h3 className="line-clamp-1 text-base font-medium text-foreground group-hover:text-primary">
+          {title}
+        </h3>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <User className="h-3 w-3" />
+          <span>{course.instructor}</span>
         </div>
-      </Link>
-      <CardContent className="p-4">
-        <Link href={`/${locale}/courses/${course.slug}`}>
-          <h3 className="line-clamp-2 text-balance font-semibold transition-colors group-hover:text-primary">
-            {title}
-          </h3>
-        </Link>
-        <p className="mt-2 text-sm text-muted-foreground">{course.instructor}</p>
-        {course.created_at && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {new Date(course.created_at).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
-        )}
-      </CardContent>
-      <CardFooter className="flex items-center justify-between p-4 pt-0">
-        <p className="text-2xl font-bold">{formatCurrency(price, { currency })}</p>
-        <Link href={`/${locale}/courses/${course.slug}`}>
-          <Button size="sm">{t('courseCard.enrollNow')}</Button>
-        </Link>
-      </CardFooter>
-    </Card>
+
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-lg font-bold text-foreground">
+            {price > 0 ? formatCurrency(price, { currency }) : 'Free'}
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }

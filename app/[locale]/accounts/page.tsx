@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-locale';
+import { Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -178,7 +179,7 @@ export default function AccountsPage() {
             {!loading && filteredProducts.length === 0 && (
               <div className="flex min-h-[400px] flex-col items-center justify-center py-12 text-center">
                 <div className="mb-4 rounded-full bg-muted p-6">
-                  <span className="text-4xl">🔍</span>
+                  <Search />
                 </div>
                 <h3 className="text-xl font-semibold">{copy.empty[locale]}</h3>
                 <p className="mt-2 text-muted-foreground">
