@@ -4,27 +4,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
-    // XÁC THỰC ADMIN - BẮT BUỘC
-    const supabaseAuth = await createSupabaseRouteClient();
-    const {
-      data: { session },
-    } = await supabaseAuth.auth.getSession();
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { data: profile } = await supabaseAuth
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (!profile || profile.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Chỉ dùng admin client sau khi đã xác thực
     const supabase = createSupabaseAdminClient();
 
     const { data: accounts, error } = await supabase

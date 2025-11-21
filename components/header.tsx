@@ -11,13 +11,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
 import { i18nConfig } from '@/i18nConfig';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { Gift, LogIn, LogOut, Menu, Settings, ShoppingCart, User } from 'lucide-react';
+import {
+  Gift,
+  GraduationCap,
+  LogIn,
+  LogOut,
+  Menu,
+  Settings,
+  ShoppingCart,
+  User,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -305,7 +314,7 @@ export function Header() {
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-3 rounded-full pl-2 pr-4">
+                  <Button variant="outline" className="hidden md:flex gap-3 rounded-full pl-2 pr-4">
                     <Avatar className="h-6 w-6">
                       {avatarUrl ? (
                         <AvatarImage src={avatarUrl} alt={displayName ?? 'User avatar'} />
@@ -375,41 +384,117 @@ export function Header() {
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72">
-                <div className="flex flex-col gap-4 pt-8 px-4">
-                  <div className="mb-2 flex justify-center">
+              <SheetContent side="right" className="w-80 sm:w-96">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <div className="flex flex-col gap-4 pt-6 px-2">
+                  <div className="flex justify-center py-2">
                     <LanguageSwitcher size="md" />
                   </div>
-                  {navLinks.map((link) => {
-                    const isActive =
-                      link.href === '/'
-                        ? normalizedPathname === '/'
-                        : normalizedPathname?.startsWith(link.href);
-                    return (
-                      <Link
-                        key={link.href}
-                        href={getLocalizedHref(link.href)}
-                        aria-current={isActive ? 'page' : undefined}
-                        className={`rounded-full px-4 py-2 text-base transition-all ${
-                          isActive
-                            ? 'font-bold text-foreground'
-                            : 'font-medium text-foreground/80 hover:text-foreground/90'
-                        }`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {t(link.labelKey)}
-                      </Link>
-                    );
-                  })}
-                  <div className="mt-4 border-t pt-4">
-                    {!isLoggedIn && (
+
+                  <div className="flex flex-col gap-2">
+                    {navLinks.map((link) => {
+                      const isActive =
+                        link.href === '/'
+                          ? normalizedPathname === '/'
+                          : normalizedPathname?.startsWith(link.href);
+                      return (
+                        <Link
+                          key={link.href}
+                          href={getLocalizedHref(link.href)}
+                          aria-current={isActive ? 'page' : undefined}
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Button
+                            variant={isActive ? 'secondary' : 'ghost'}
+                            className={`w-full justify-start text-base h-12 rounded-xl ${
+                              isActive ? 'font-bold' : 'font-medium'
+                            }`}
+                          >
+                            {t(link.labelKey)}
+                          </Button>
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-2 border-t pt-4">
+                    {isLoggedIn ? (
+                      <div className="mb-2 flex flex-col gap-3">
+                        <div className="flex items-center gap-3 px-2">
+                          <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+                            {avatarUrl ? (
+                              <AvatarImage src={avatarUrl} alt={displayName ?? 'User avatar'} />
+                            ) : (
+                              <AvatarFallback>{initials}</AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="flex flex-col overflow-hidden">
+                            <span className="truncate font-bold text-lg leading-tight">
+                              {displayName}
+                            </span>
+                            <span className="truncate text-xs text-muted-foreground">
+                              {sessionUser?.email}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-1">
+                          <Link
+                            href={getLocalizedHref('/user/profile')}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Button variant="outline" className="w-full justify-start gap-3 h-11">
+                              <User className="h-4 w-4" />
+                              {t('auth.profile')}
+                            </Button>
+                          </Link>
+                          <Link
+                            href={getLocalizedHref('/user/orders')}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Button variant="outline" className="w-full justify-start gap-3 h-11">
+                              <ShoppingCart className="h-4 w-4" />
+                              {t('auth.orders')}
+                            </Button>
+                          </Link>
+                          <Link
+                            href={getLocalizedHref('/user/courses')}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Button variant="outline" className="w-full justify-start gap-3 h-11">
+                              <GraduationCap className="h-4 w-4" />
+                              {t('auth.courses')}
+                            </Button>
+                          </Link>
+                          {isAdmin && (
+                            <Link href="/admin" onClick={() => setIsOpen(false)}>
+                              <Button variant="outline" className="w-full justify-start gap-3 h-11">
+                                <Settings className="h-4 w-4" />
+                                {locale === 'vi' ? 'Quản trị' : 'Admin Dashboard'}
+                              </Button>
+                            </Link>
+                          )}
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-3 h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              void handleLogout();
+                              setIsOpen(false);
+                            }}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            {t('auth.logout')}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
                       <Link href={getLocalizedHref('/login')} onClick={() => setIsOpen(false)}>
-                        <Button className="w-full gap-2">
-                          <LogIn className="h-4 w-4" />
+                        <Button className="w-full gap-2" size="lg">
+                          <LogIn className="h-5 w-5" />
                           {t('auth.login')}
                         </Button>
                       </Link>

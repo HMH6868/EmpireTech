@@ -1,9 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-locale';
 import { useTranslations } from '@/hooks/useTranslations';
-import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -25,6 +22,8 @@ type Product = {
     id: string;
     price_usd: number;
     price_vnd: number;
+    original_price_usd?: number;
+    original_price_vnd?: number;
   }>;
 };
 
@@ -35,7 +34,6 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { locale, formatCurrency, currency } = useLanguage();
   const commonT = useTranslations('common');
-  const productT = useTranslations('products');
 
   const productName = locale === 'vi' ? product.name_vi : product.name_en;
   const categoryLabel = product.category
@@ -44,10 +42,31 @@ export function ProductCard({ product }: ProductCardProps) {
       : product.category.name_en
     : null;
 
-  // Lấy giá thấp nhất từ variants
-  const minPrice =
+  // Find the variant with the lowest price to display "From X"
+  const displayVariant =
     product.variants && product.variants.length > 0
-      ? Math.min(...product.variants.map((v) => (currency === 'vnd' ? v.price_vnd : v.price_usd)))
+      ? product.variants.reduce((prev, curr) => {
+          const prevPrice = currency === 'vnd' ? prev.price_vnd : prev.price_usd;
+          const currPrice = currency === 'vnd' ? curr.price_vnd : curr.price_usd;
+          return prevPrice < currPrice ? prev : curr;
+        })
+      : null;
+
+  const price = displayVariant
+    ? currency === 'vnd'
+      ? displayVariant.price_vnd
+      : displayVariant.price_usd
+    : 0;
+  const originalPrice = displayVariant
+    ? currency === 'vnd'
+      ? displayVariant.original_price_vnd
+      : displayVariant.original_price_usd
+    : 0;
+
+  // Calculate discount percentage
+  const discountPercent =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : 0;
 
   const statusKeyMap = {
@@ -57,41 +76,64 @@ export function ProductCard({ product }: ProductCardProps) {
   } as const;
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-lg">
-      <Link href={`/accounts/${product.slug}`}>
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          <Image
-            src={product.image || '/placeholder.svg'}
-            alt={productName}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-          {product.inventory_status === 'low-stock' && (
-            <Badge className="absolute right-2 top-2" variant="destructive">
-              {commonT(statusKeyMap['low-stock'])}
+    <Link
+      href={`/accounts/${product.slug}`}
+      className="group flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-3 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+    >
+      {/* Image Container */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-muted/20">
+        <Image
+          src={product.image || '/placeholder.svg'}
+          alt={productName}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+
+        {/* Badges */}
+        <div className="absolute left-2 top-2 flex flex-col gap-1.5">
+          {product.inventory_status !== 'in-stock' && (
+            <Badge
+              variant={product.inventory_status === 'out-of-stock' ? 'destructive' : 'secondary'}
+              className="w-fit shadow-sm backdrop-blur-md"
+            >
+              {commonT(statusKeyMap[product.inventory_status])}
+            </Badge>
+          )}
+          {categoryLabel && (
+            <Badge
+              variant="secondary"
+              className="w-fit border-white/50 bg-blue-500/50 backdrop-blur-md hover:bg-blue-500/80 text-black"
+            >
+              {categoryLabel}
             </Badge>
           )}
         </div>
-      </Link>
-      <CardContent className="p-4">
-        <Link href={`/accounts/${product.slug}`}>
-          <h3 className="line-clamp-2 text-balance font-semibold transition-colors group-hover:text-primary">
-            {productName}
-          </h3>
-        </Link>
-        {categoryLabel && <p className="mt-2 text-xs text-muted-foreground">{categoryLabel}</p>}
-      </CardContent>
-      <CardFooter className="flex items-center justify-between p-4 pt-0">
-        <div>
-          <p className="text-2xl font-bold">
-            {minPrice > 0 ? formatCurrency(minPrice, { currency }) : 'N/A'}
-          </p>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col gap-1.5 px-1 pb-1">
+        <h3 className="line-clamp-1 text-base font-medium text-foreground group-hover:text-primary">
+          {productName}
+        </h3>
+
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-foreground">
+            {price > 0 ? formatCurrency(price, { currency }) : 'Contact'}
+          </span>
+
+          {originalPrice && originalPrice > price && (
+            <>
+              <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/70">
+                {formatCurrency(originalPrice, { currency })}
+              </span>
+              <span className="rounded bg-[#E91E63] px-1.5 py-0.5 text-xs font-bold text-white">
+                -{discountPercent}%
+              </span>
+            </>
+          )}
         </div>
-        <Button size="sm" className="gap-2">
-          <ShoppingCart className="h-4 w-4" />
-          {productT('productCard.addToCart')}
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </Link>
   );
 }

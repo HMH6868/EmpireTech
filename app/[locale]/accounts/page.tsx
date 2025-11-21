@@ -122,15 +122,19 @@ export default function AccountsPage() {
         </section>
 
         {/* Filters and Products */}
-        <section className="py-12">
+        <section className="py-5 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Category Filters */}
-            <div className="mb-8 flex flex-wrap gap-2">
+            <div className="mb-10 flex flex-wrap gap-3">
               <Button
                 variant={selectedCategory === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('all')}
-                className="transition-all"
+                className={`rounded-full px-6 transition-all ${
+                  selectedCategory === 'all'
+                    ? 'shadow-md hover:shadow-lg'
+                    : 'border-border/60 bg-background hover:bg-muted hover:text-foreground'
+                }`}
               >
                 {locale === 'vi' ? 'Tất cả' : 'All'}
               </Button>
@@ -140,7 +144,11 @@ export default function AccountsPage() {
                   variant={selectedCategory === category.id ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedCategory(category.id)}
-                  className="transition-all"
+                  className={`rounded-full px-6 transition-all ${
+                    selectedCategory === category.id
+                      ? 'shadow-md hover:shadow-lg'
+                      : 'border-border/60 bg-background hover:bg-muted hover:text-foreground'
+                  }`}
                 >
                   {locale === 'vi' ? category.name_vi : category.name_en}
                 </Button>
@@ -149,14 +157,17 @@ export default function AccountsPage() {
 
             {/* Loading State */}
             {loading && (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground">{copy.loading[locale]}</p>
+              <div className="flex min-h-[400px] items-center justify-center py-12">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                  <p className="text-muted-foreground">{copy.loading[locale]}</p>
+                </div>
               </div>
             )}
 
             {/* Product Grid */}
             {!loading && (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -165,8 +176,16 @@ export default function AccountsPage() {
 
             {/* Empty State */}
             {!loading && filteredProducts.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground">{copy.empty[locale]}</p>
+              <div className="flex min-h-[400px] flex-col items-center justify-center py-12 text-center">
+                <div className="mb-4 rounded-full bg-muted p-6">
+                  <span className="text-4xl">🔍</span>
+                </div>
+                <h3 className="text-xl font-semibold">{copy.empty[locale]}</h3>
+                <p className="mt-2 text-muted-foreground">
+                  {locale === 'vi'
+                    ? 'Hãy thử chọn danh mục khác'
+                    : 'Try selecting a different category'}
+                </p>
               </div>
             )}
           </div>
