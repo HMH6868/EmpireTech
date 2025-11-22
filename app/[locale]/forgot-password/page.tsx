@@ -1,43 +1,40 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import Link from "next/link"
-import { KeyRound } from "lucide-react"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { Footer } from '@/components/footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { KeyRound } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export default function ForgotPasswordPage() {
-  const { toast } = useToast()
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     // Mock password reset
     setTimeout(() => {
       toast({
-        title: "Reset link sent",
-        description: "Check your email for password reset instructions",
-      })
-      setIsLoading(false)
-      setIsSubmitted(true)
-    }, 1000)
-  }
+        title: 'Reset link sent',
+        description: 'Check your email for password reset instructions',
+      });
+      setIsLoading(false);
+      setIsSubmitted(true);
+    }, 1000);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1 flex items-center justify-center py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-md">
@@ -48,15 +45,18 @@ export default function ForgotPasswordPage() {
                 </div>
                 <CardTitle className="mt-4 text-2xl">Forgot Password?</CardTitle>
                 <CardDescription>
-                  {isSubmitted ? "We've sent you a reset link" : "Enter your email to reset your password"}
+                  {isSubmitted
+                    ? "We've sent you a reset link"
+                    : 'Enter your email to reset your password'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {isSubmitted ? (
                   <div className="space-y-4 text-center">
                     <p className="text-sm text-muted-foreground">
-                      We've sent a password reset link to <span className="font-medium text-foreground">{email}</span>.
-                      Please check your inbox and follow the instructions.
+                      We've sent a password reset link to{' '}
+                      <span className="font-medium text-foreground">{email}</span>. Please check
+                      your inbox and follow the instructions.
                     </p>
                     <Link href="/login" className="block">
                       <Button className="w-full">Back to Login</Button>
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
                       />
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Sending..." : "Send Reset Link"}
+                      {isLoading ? 'Sending...' : 'Send Reset Link'}
                     </Button>
                     <Link href="/login" className="block">
                       <Button variant="ghost" className="w-full">
@@ -93,5 +93,5 @@ export default function ForgotPasswordPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

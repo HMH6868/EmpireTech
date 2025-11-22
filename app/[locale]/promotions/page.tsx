@@ -1,7 +1,6 @@
 'use client';
 
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,7 +72,6 @@ export default function PromotionsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <main className="flex flex-1 items-center justify-center">
           <p className="text-muted-foreground">{t('loading')}</p>
         </main>
@@ -84,8 +82,6 @@ export default function PromotionsPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
         <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

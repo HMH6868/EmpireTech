@@ -1,9 +1,8 @@
 'use client';
 
 import { ProductCard } from '@/components/account-card';
+import { ProductFilters, type FilterState } from '@/components/filters';
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-locale';
 import { Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -11,8 +10,8 @@ import { useEffect, useState } from 'react';
 
 type Account = {
   id: string;
-  slug: string;
   name_en: string;
+  slug: string;
   name_vi: string;
   image?: string;
   category_id?: string;
@@ -38,9 +37,16 @@ type Category = {
 };
 
 export default function AccountsPage() {
-  const { locale } = useLanguage();
+  const { locale, currency } = useLanguage();
   const searchParams = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Applied filters state
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
+    category: 'all',
+    priceRange: { min: '', max: '' },
+    sortBy: 'default',
+  });
+
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +60,7 @@ export default function AccountsPage() {
     if (categorySlug && categories.length > 0) {
       const category = categories.find((cat) => cat.slug === categorySlug);
       if (category) {
-        setSelectedCategory(category.id);
+        setAppliedFilters((prev) => ({ ...prev, category: category.id }));
       }
     }
   }, [searchParams, categories]);
@@ -84,17 +90,54 @@ export default function AccountsPage() {
     }
   };
 
-  const filteredProducts =
-    selectedCategory === 'all'
-      ? accounts
-      : accounts.filter((account) => account.category_id === selectedCategory);
+  const filteredProducts = accounts
+    .filter((account) => {
+      // Filter by Category
+      if (appliedFilters.category !== 'all' && account.category_id !== appliedFilters.category) {
+        return false;
+      }
+
+      // Filter by Price
+      const getPrice = (acc: Account) => {
+        if (!acc.variants || acc.variants.length === 0) return 0;
+        const prices = acc.variants.map((v) => (currency === 'vnd' ? v.price_vnd : v.price_usd));
+        return Math.min(...prices);
+      };
+
+      const price = getPrice(account);
+      const minPrice = appliedFilters.priceRange.min
+        ? parseFloat(appliedFilters.priceRange.min)
+        : 0;
+      const maxPrice = appliedFilters.priceRange.max
+        ? parseFloat(appliedFilters.priceRange.max)
+        : Infinity;
+
+      if (price < minPrice || price > maxPrice) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (appliedFilters.sortBy === 'default') return 0;
+
+      const getPrice = (acc: Account) => {
+        if (!acc.variants || acc.variants.length === 0) return 0;
+        const prices = acc.variants.map((v) => (currency === 'vnd' ? v.price_vnd : v.price_usd));
+        return Math.min(...prices);
+      };
+
+      const priceA = getPrice(a);
+      const priceB = getPrice(b);
+
+      return appliedFilters.sortBy === 'price-asc' ? priceA - priceB : priceB - priceA;
+    });
+
+  const handleApplyFilters = (filters: FilterState) => {
+    setAppliedFilters(filters);
+  };
 
   const copy = {
-    title: { en: 'Premium Digital Accounts', vi: 'Tài khoản Premium' },
-    description: {
-      en: 'Browse our collection of verified premium accounts with instant delivery',
-      vi: 'Kho tài khoản uy tín, giao ngay trong vài phút',
-    },
     empty: {
       en: 'No products found in this category.',
       vi: 'Không có sản phẩm trong danh mục này.',
@@ -107,54 +150,16 @@ export default function AccountsPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
-        {/* Page Header */}
-        <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">
-              {copy.title[locale]}
-            </h1>
-            <p className="mt-1 text-pretty text-base text-muted-foreground">
-              {copy.description[locale]}
-            </p>
-          </div>
-        </section>
-
         {/* Filters and Products */}
         <section className="py-5 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Category Filters */}
-            <div className="mb-10 flex flex-wrap gap-3">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory('all')}
-                className={`rounded-full px-6 transition-all ${
-                  selectedCategory === 'all'
-                    ? 'shadow-md hover:shadow-lg'
-                    : 'border-border/60 bg-background hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                {locale === 'vi' ? 'Tất cả' : 'All'}
-              </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`rounded-full px-6 transition-all ${
-                    selectedCategory === category.id
-                      ? 'shadow-md hover:shadow-lg'
-                      : 'border-border/60 bg-background hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  {locale === 'vi' ? category.name_vi : category.name_en}
-                </Button>
-              ))}
-            </div>
+            {/* Filter Bar */}
+            <ProductFilters
+              categories={categories}
+              onFilter={handleApplyFilters}
+              className="mb-8"
+            />
 
             {/* Loading State */}
             {loading && (

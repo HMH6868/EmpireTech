@@ -1,7 +1,6 @@
 'use client';
 
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,8 +81,6 @@ export default function UserProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1 bg-muted/30 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">

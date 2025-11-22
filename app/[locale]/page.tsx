@@ -3,7 +3,6 @@
 import { ProductCard } from '@/components/account-card';
 import { CourseCard } from '@/components/course-card';
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-locale';
@@ -11,14 +10,16 @@ import { useTranslations } from '@/hooks/useTranslations';
 import {
   ArrowRight,
   BookOpen,
+  Bot,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
-  Clock,
+  Gamepad2,
   Gift,
   GraduationCap,
-  Shield,
   Sparkles,
-  Zap,
+  Wallet,
+  Youtube,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -71,10 +72,23 @@ type CategoryWithProducts = Category & {
   products: Account[];
 };
 
-const featureItems = [
-  { key: 'instantDelivery', Icon: Zap, color: 'text-yellow-500' },
-  { key: 'secure', Icon: Shield, color: 'text-green-500' },
-  { key: 'support', Icon: Clock, color: 'text-blue-500' },
+const keywordItems = [
+  { key: 'work', label: 'Làm việc', Icon: Briefcase, gradient: 'from-blue-600 to-blue-500' },
+  {
+    key: 'entertainment',
+    label: 'Giải trí',
+    Icon: Gamepad2,
+    gradient: 'from-teal-500 to-teal-400',
+  },
+  {
+    key: 'study',
+    label: 'Học tập',
+    Icon: GraduationCap,
+    gradient: 'from-orange-500 to-orange-400',
+  },
+  { key: 'ai', label: 'AI', Icon: Bot, gradient: 'from-violet-600 to-violet-500' },
+  { key: 'wallet', label: 'Wallet', Icon: Wallet, gradient: 'from-slate-700 to-slate-600' },
+  { key: 'youtube', label: 'Youtube', Icon: Youtube, gradient: 'from-red-600 to-red-500' },
 ] as const;
 
 const heroSpotlightItems = [
@@ -255,8 +269,6 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
         {/* Hero Banner Carousel */}
         <section className="relative bg-muted/20 py-4 lg:py-8">
@@ -378,28 +390,22 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Features */}
-        <section className="border-y border-border/40 bg-gradient-to-r from-primary/5 via-background to-primary/5 py-8">
+        {/* Highlighted Keywords */}
+        <section className="py-8 bg-background border-y border-border/40">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {featureItems.map(({ key, Icon, color }) => (
+            <h3 className="text-xl font-bold mb-6">
+              {locale === 'vi' ? 'Từ khóa nổi bật' : 'Highlighted Keywords'}
+            </h3>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+              {keywordItems.map(({ key, label, Icon, gradient }) => (
                 <div
                   key={key}
-                  className="flex items-center gap-4 p-4 rounded-lg bg-card/50 hover:bg-card transition-all hover:shadow-md group"
+                  className={`flex items-center justify-center gap-2 p-4 rounded-xl bg-gradient-to-r ${gradient} text-white shadow-lg hover:scale-105 transition-transform cursor-pointer group`}
                 >
-                  <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 ${color} group-hover:scale-110 transition-transform`}
-                  >
-                    <Icon className="h-7 w-7" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base mb-1">
-                      {homeT(`features.${key}Title`)}
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {homeT(`features.${key}Description`)}
-                    </p>
-                  </div>
+                  <Icon className="h-5 w-5 group-hover:animate-bounce" />
+                  <span className="font-semibold text-sm sm:text-base whitespace-nowrap">
+                    {label}
+                  </span>
                 </div>
               ))}
             </div>

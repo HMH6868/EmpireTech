@@ -3,7 +3,6 @@
 import { ProductCard } from '@/components/account-card';
 import { CommentSection } from '@/components/comment-section';
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -91,6 +90,8 @@ export default function ProductDetailPage() {
   }, [product]);
 
   useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: 'instant' });
     fetchProduct();
     fetchCurrentUser();
   }, [params.slug]);
@@ -143,7 +144,6 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground">{locale === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
         </main>
@@ -155,7 +155,6 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold">
@@ -309,8 +308,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
         <section className="py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

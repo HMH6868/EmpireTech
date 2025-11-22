@@ -1,17 +1,14 @@
-import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Footer } from '@/components/footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function OrderSuccessPage() {
-  const orderNumber = "ET-" + Math.random().toString(36).substr(2, 9).toUpperCase()
+  const orderNumber = 'ET-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1 flex items-center justify-center bg-muted/30 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl">
@@ -62,5 +59,5 @@ export default function OrderSuccessPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

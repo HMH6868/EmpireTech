@@ -1,7 +1,6 @@
 'use client';
 
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -190,7 +189,6 @@ export default function CartPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <main className="flex-1 flex items-center justify-center py-12">
           <p className="text-muted-foreground">{locale === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
         </main>
@@ -202,7 +200,6 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <main className="flex-1 flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-muted">
@@ -225,8 +222,6 @@ export default function CartPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
         <section className="border-b border-border/40 bg-muted/30 py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

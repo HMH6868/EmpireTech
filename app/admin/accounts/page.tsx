@@ -88,6 +88,22 @@ const statusLabels = {
   'out-of-stock': 'Hết hàng',
 } as const;
 
+const formatVND = (value: number | string) => {
+  if (!value) return '';
+  // Convert to string and remove existing dots
+  const stringValue = value.toString().replace(/\./g, '');
+  // Check if it's a valid number
+  const numberValue = Number(stringValue);
+  if (isNaN(numberValue)) return value.toString();
+  // Format with dots
+  return new Intl.NumberFormat('vi-VN').format(numberValue);
+};
+
+const parseVND = (value: string) => {
+  // Remove dots and convert to number
+  return Number(value.replace(/\./g, ''));
+};
+
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -415,7 +431,7 @@ export default function AdminAccountsPage() {
                   </TabsList>
 
                   <TabsContent value="general" className="space-y-4 py-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4">
                       <div className="grid gap-2">
                         <Label htmlFor="name_en">Tên sản phẩm (Tiếng Anh)</Label>
                         <Input
@@ -447,7 +463,12 @@ export default function AdminAccountsPage() {
                           name="slug"
                           placeholder="chatgpt-plus-account"
                           value={formData.slug}
-                          onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              slug: e.target.value.replace(/\s+/g, '-').toLowerCase(),
+                            })
+                          }
                           required
                         />
                       </div>
@@ -654,7 +675,7 @@ export default function AdminAccountsPage() {
                                 </Button>
                               </div>
                               <div className="grid gap-3">
-                                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3">
                                   <div className="grid gap-1.5">
                                     <Label className="text-xs">Tên biến thể (EN)</Label>
                                     <Input
@@ -768,7 +789,7 @@ export default function AdminAccountsPage() {
                                     Thêm ảnh biến thể
                                   </Button>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-2">
                                   <div className="grid gap-1.5">
                                     <Label className="text-xs">Giá (USD)</Label>
                                     <Input
@@ -789,15 +810,14 @@ export default function AdminAccountsPage() {
                                   <div className="grid gap-1.5">
                                     <Label className="text-xs">Giá (VND)</Label>
                                     <Input
-                                      type="number"
-                                      step="1000"
-                                      placeholder="349000"
-                                      value={variant.price_vnd}
+                                      type="text"
+                                      placeholder="349.000"
+                                      value={formatVND(variant.price_vnd)}
                                       onChange={(e) =>
                                         handleUpdateVariant(
                                           index,
                                           'price_vnd',
-                                          Number.parseFloat(e.target.value) || 0
+                                          parseVND(e.target.value)
                                         )
                                       }
                                       className="h-9"
@@ -814,7 +834,7 @@ export default function AdminAccountsPage() {
                                         handleUpdateVariant(
                                           index,
                                           'original_price_usd',
-                                          Number.parseFloat(e.target.value) || undefined
+                                          Number.parseFloat(e.target.value) || 0
                                         )
                                       }
                                       className="h-9"
@@ -823,15 +843,14 @@ export default function AdminAccountsPage() {
                                   <div className="grid gap-1.5">
                                     <Label className="text-xs">Giá gốc (VND)</Label>
                                     <Input
-                                      type="number"
-                                      step="1000"
-                                      placeholder="399000"
-                                      value={variant.original_price_vnd || ''}
+                                      type="text"
+                                      placeholder="399.000"
+                                      value={formatVND(variant.original_price_vnd || 0)}
                                       onChange={(e) =>
                                         handleUpdateVariant(
                                           index,
                                           'original_price_vnd',
-                                          Number.parseFloat(e.target.value) || undefined
+                                          parseVND(e.target.value)
                                         )
                                       }
                                       className="h-9"

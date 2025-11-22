@@ -270,7 +270,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-3 px-2 py-1 md:flex">
+          <nav className="hidden items-center gap-1.5 px-2 py-1 lg:flex">
             {navLinks.map((link) => {
               const isActive =
                 link.href === '/'
@@ -281,7 +281,7 @@ export function Header() {
                   key={link.href}
                   href={getLocalizedHref(link.href)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`rounded-full px-3 py-1 text-sm transition-all ${
+                  className={`rounded-full px-2.5 py-1 text-sm transition-all whitespace-nowrap ${
                     isActive
                       ? 'font-bold text-foreground'
                       : 'font-medium text-foreground/70 hover:text-foreground'
@@ -295,7 +295,7 @@ export function Header() {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <LanguageSwitcher size="sm" />
             </div>
             {/* Cart */}
@@ -314,7 +314,7 @@ export function Header() {
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="hidden md:flex gap-3 rounded-full pl-2 pr-4">
+                  <Button variant="outline" className="hidden lg:flex gap-2 rounded-full pl-2 pr-3">
                     <Avatar className="h-6 w-6">
                       {avatarUrl ? (
                         <AvatarImage src={avatarUrl} alt={displayName ?? 'User avatar'} />
@@ -323,7 +323,7 @@ export function Header() {
                       )}
                     </Avatar>
                     <div className="flex items-center text-left">
-                      <span className="max-w-[140px] truncate text-sm font-medium leading-tight">
+                      <span className="max-w-[100px] truncate text-sm font-medium leading-tight">
                         {displayName}
                       </span>
                     </div>
@@ -383,7 +383,7 @@ export function Header() {
 
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild className="md:hidden">
+              <SheetTrigger asChild className="lg:hidden">
                 <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>

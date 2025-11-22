@@ -1,8 +1,8 @@
 'use client';
 
 import { CourseCard } from '@/components/course-card';
+import { ProductFilters, type FilterState } from '@/components/filters';
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { useLanguage } from '@/hooks/use-locale';
 import { useEffect, useState } from 'react';
 
@@ -26,19 +26,19 @@ type Course = {
 };
 
 const copy = {
-  title: { en: 'Explore Courses', vi: 'Khám phá khóa học' },
-  subtitle: {
-    en: 'Upskill with expert-led lessons, practice projects, and lifetime access.',
-    vi: 'Nâng cấp kỹ năng với khóa học cùng chuyên gia, dự án thực hành và truy cập trọn đời.',
-  },
   empty: { en: 'No courses found.', vi: 'Không tìm thấy khóa học.' },
   loading: { en: 'Loading courses...', vi: 'Đang tải khóa học...' },
 };
 
 export default function CoursesPage() {
-  const { locale } = useLanguage();
+  const { locale, currency } = useLanguage();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
+    category: 'all',
+    priceRange: { min: '', max: '' },
+    sortBy: 'default',
+  });
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -60,24 +60,43 @@ export default function CoursesPage() {
     fetchCourses();
   }, []);
 
+  const filteredCourses = courses
+    .filter((course) => {
+      // Filter by Price
+      const price = currency === 'vnd' ? course.price_vnd : course.price_usd;
+      const minPrice = appliedFilters.priceRange.min
+        ? parseFloat(appliedFilters.priceRange.min)
+        : 0;
+      const maxPrice = appliedFilters.priceRange.max
+        ? parseFloat(appliedFilters.priceRange.max)
+        : Infinity;
+
+      if (price < minPrice || price > maxPrice) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (appliedFilters.sortBy === 'default') return 0;
+
+      const priceA = currency === 'vnd' ? a.price_vnd : a.price_usd;
+      const priceB = currency === 'vnd' ? b.price_vnd : b.price_usd;
+
+      return appliedFilters.sortBy === 'price-asc' ? priceA - priceB : priceB - priceA;
+    });
+
+  const handleApplyFilters = (filters: FilterState) => {
+    setAppliedFilters(filters);
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1">
-        <section className="border-b border-border/40 bg-muted/30 py-5 text-center">
+        <section className="py-5">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-balance text-xl font-bold tracking-tight sm:text-2xl">
-              {copy.title[locale]}
-            </h1>
-            <p className="mt-1 text-pretty text-base text-muted-foreground">
-              {copy.subtitle[locale]}
-            </p>
-          </div>
-        </section>
+            <ProductFilters categories={[]} onFilter={handleApplyFilters} className="mb-8" />
 
-        <section className="py-12">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground">{copy.loading[locale]}</p>
@@ -85,12 +104,12 @@ export default function CoursesPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {courses.map((course) => (
+                  {filteredCourses.map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
 
-                {courses.length === 0 && (
+                {filteredCourses.length === 0 && (
                   <div className="py-12 text-center">
                     <p className="text-muted-foreground">{copy.empty[locale]}</p>
                   </div>

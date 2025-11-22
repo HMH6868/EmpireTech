@@ -1,7 +1,6 @@
 'use client';
 
 import { Footer } from '@/components/footer';
-import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-locale';
@@ -13,8 +12,6 @@ export default function UserOrdersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
-
       <main className="flex-1 bg-muted/30 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">

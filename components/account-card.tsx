@@ -75,11 +75,20 @@ export function ProductCard({ product }: ProductCardProps) {
     'out-of-stock': 'status.outOfStock',
   } as const;
 
+  const isOutOfStock = product.inventory_status === 'out-of-stock';
+
   return (
     <Link
       href={`/accounts/${product.slug}`}
-      className="group flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-3 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+      className={`group relative flex flex-col gap-3 rounded-xl border border-border/50 bg-card p-3 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${
+        isOutOfStock ? 'opacity-70' : ''
+      }`}
     >
+      {/* Out of Stock Overlay */}
+      {isOutOfStock && (
+        <div className="absolute inset-0 z-10 rounded-xl bg-background/40 backdrop-blur-[1px]" />
+      )}
+
       {/* Image Container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-muted/20">
         <Image
@@ -91,7 +100,7 @@ export function ProductCard({ product }: ProductCardProps) {
         />
 
         {/* Badges */}
-        <div className="absolute left-2 top-2 flex flex-col gap-1.5">
+        <div className="absolute left-2 top-2 z-20 flex flex-col gap-1.5">
           {product.inventory_status !== 'in-stock' && (
             <Badge
               variant={product.inventory_status === 'out-of-stock' ? 'destructive' : 'secondary'}
@@ -103,7 +112,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {categoryLabel && (
             <Badge
               variant="secondary"
-              className="w-fit border-white/50 bg-blue-500/50 backdrop-blur-md hover:bg-blue-500/80 text-black"
+              className="w-fit border-white/50 bg-blue-500/50 backdrop-blur-md hover:bg-blue-500/80 text-white"
             >
               {categoryLabel}
             </Badge>
@@ -119,10 +128,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-lg font-bold text-foreground">
-            {price > 0 ? formatCurrency(price, { currency }) : 'Contact'}
+            {price > 0
+              ? formatCurrency(price, { currency })
+              : locale === 'vi'
+              ? 'Liên hệ'
+              : 'Contact'}
           </span>
 
-          {originalPrice && originalPrice > price && (
+          {!!originalPrice && originalPrice > price && (
             <>
               <span className="text-xs text-muted-foreground line-through decoration-muted-foreground/70">
                 {formatCurrency(originalPrice, { currency })}

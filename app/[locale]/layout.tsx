@@ -1,3 +1,4 @@
+import { Header } from '@/components/header';
 import { LanguageProvider } from '@/components/language-provider';
 import { i18nConfig, type Locale } from '@/i18nConfig';
 import { getTranslations } from '@/lib/translations';
@@ -70,6 +71,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       <body className={`${inter.className} font-sans antialiased`}>
         <Suspense fallback={null}>
           <LanguageProvider>
+            <Header />
             {children}
             <Analytics />
           </LanguageProvider>
